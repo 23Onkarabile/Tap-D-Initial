@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRUB — Order Ahead</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black: #0A0A0A;
+  --dark: #111111;
+  --surface: #181818;
+  --glass: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.08);
+  --lime: #C8F135;
+  --lime-dim: rgba(200,241,53,0.12);
+  --white: #F5F5F0;
+  --grey: #888880;
+  --red: #FF4D4D;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'Syne', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: default;
+}
+
+/* NOISE OVERLAY */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.4;
+}
+
+/* SCREEN SYSTEM */
+.screen { display: none; min-height: 100vh; position: relative; z-index: 1; }
+.screen.active { display: block; }
+
+/* ═══════════════════════════ NAV ═══════════════════════════ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px; height: 64px;
+  background: rgba(10,10,10,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px; letter-spacing: 3px;
+  color: var(--lime); line-height: 1;
+}
+
+.nav-right { display: flex; gap: 10px; align-items: center; }
+
+.cart-btn {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--lime); color: var(--black);
+  border: none; border-radius: 6px;
+  padding: 10px 18px; cursor: pointer;
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+  transition: all 0.2s; position: relative;
+}
+.cart-btn:hover { background: #d9ff40; transform: translateY(-1px); }
+
+.cart-count {
+  background: var(--black); color: var(--lime);
+  border-radius: 4px; padding: 2px 6px;
+  font-size: 11px; font-weight: 800;
+  min-width: 20px; text-align: center;
+}
+
+.back-btn {
+  background: var(--glass); color: var(--white);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 9px 16px; cursor: pointer;
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 600;
+  transition: all 0.2s;
+  backdrop-filter: blur(8px);
+}
+.back-btn:hover { border-color: var(--lime); color: var(--lime); }
+
+/* ═══════════════════════════ HOME ═══════════════════════════ */
+.home-hero {
+  padding: 130px 28px 0;
+  max-width: 760px; margin: 0 auto;
+  position: relative;
+}
+
+/* Decorative line */
+.hero-rule {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 28px;
+}
+.hero-rule-line { flex: 1; height: 1px; background: var(--border); }
+.hero-rule-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--lime);
+  box-shadow: 0 0 12px var(--lime);
+}
+.hero-rule-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 2.5px;
+  color: var(--grey); text-transform: uppercase;
+}
+
+.hero-h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(72px, 14vw, 140px);
+  line-height: 0.9; letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+.hero-h1 .accent { color: var(--lime); }
+.hero-h1 .serif {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic; font-size: 0.65em;
+  color: var(--grey); display: block;
+  letter-spacing: 0;
+}
+
+.hero-sub {
+  color: var(--grey); font-size: 15px; line-height: 1.7;
+  max-width: 400px; margin: 24px 0 36px;
+  font-weight: 400;
+}
+
+/* SEARCH */
+.search-wrap {
+  display: flex; gap: 0;
+  max-width: 500px; margin-bottom: 72px;
+  border: 1px solid var(--border); border-radius: 8px;
+  overflow: hidden; background: var(--surface);
+  transition: border-color 0.2s;
+}
+.search-wrap:focus-within { border-color: var(--lime); }
+.search-icon {
+  padding: 0 16px; color: var(--grey); font-size: 16px;
+  display: flex; align-items: center;
+}
+.search-wrap input {
+  flex: 1; border: none; outline: none; background: transparent;
+  font-family: 'Syne', sans-serif; font-size: 14px;
+  color: var(--white); padding: 14px 0;
+}
+.search-wrap input::placeholder { color: #555; }
+.search-wrap button {
+  background: var(--lime); color: var(--black);
+  border: none; padding: 0 22px;
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; letter-spacing: 0.5px;
+  transition: background 0.15s;
+}
+.search-wrap button:hover { background: #d9ff40; }
+
+/* SECTION HEADER */
+.section-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 0 28px; max-width: 760px; margin: 0 auto 20px;
+}
+.section-head h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px; letter-spacing: 1px; color: var(--white);
+}
+.section-head span { font-size: 12px; color: var(--grey); letter-spacing: 1px; }
+
+/* BIZ CARDS */
+.businesses {
+  padding: 0 28px 120px;
+  max-width: 760px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+.biz-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden;
+  cursor: pointer; position: relative;
+  transition: border-color 0.25s, transform 0.25s;
+  animation: riseIn 0.55s cubic-bezier(0.22,1,0.36,1) both;
+}
+.biz-card:nth-child(2) { animation-delay: 0.12s; }
+.biz-card:hover { border-color: var(--lime); transform: translateY(-3px); }
+.biz-card:hover .biz-arrow { color: var(--lime); transform: translateX(4px); }
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(32px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.biz-img-wrap {
+  height: 200px; position: relative; overflow: hidden;
+}
+.biz-img-wrap img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.5s;
+}
+.biz-card:hover .biz-img-wrap img { transform: scale(1.04); }
+
+.biz-img-gradient {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 30%, rgba(10,10,10,0.85) 100%);
+}
+
+.biz-status {
+  position: absolute; top: 14px; left: 14px;
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(10,10,10,0.75); backdrop-filter: blur(10px);
+  border: 1px solid rgba(200,241,53,0.3);
+  border-radius: 4px; padding: 5px 10px;
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  color: var(--lime); text-transform: uppercase;
+}
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--lime);
+  box-shadow: 0 0 8px var(--lime);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.biz-rating-badge {
+  position: absolute; bottom: 14px; right: 14px;
+  background: var(--lime); color: var(--black);
+  border-radius: 4px; padding: 6px 10px;
+  font-size: 15px; font-weight: 800;
+}
+
+.biz-body { padding: 20px 22px 22px; }
+.biz-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+
+.biz-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 30px; letter-spacing: 1px;
+  color: var(--white); line-height: 1; margin-bottom: 8px;
+}
+.biz-arrow {
+  font-size: 22px; color: var(--grey);
+  transition: all 0.2s; margin-top: 4px; flex-shrink: 0;
+}
+
+.biz-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.biz-tag {
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: 3px 9px; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.5px; color: var(--grey); text-transform: uppercase;
+}
+
+.biz-meta-row {
+  display: flex; gap: 20px; padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.biz-meta-item { font-size: 12px; color: var(--grey); }
+.biz-meta-item strong { color: var(--white); font-weight: 600; display: block; font-size: 13px; }
+
+/* ═══════════════════════════ MENU ═══════════════════════════ */
+.menu-hero {
+  padding-top: 64px; height: 300px;
+  position: relative; overflow: hidden;
+}
+.menu-hero img { width: 100%; height: 100%; object-fit: cover; }
+.menu-hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, var(--black) 0%, rgba(10,10,10,0.2) 60%, transparent 100%);
+}
+
+.menu-header {
+  padding: 0 28px 24px;
+  max-width: 760px; margin: 0 auto;
+}
+.menu-biz-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(44px, 9vw, 72px);
+  letter-spacing: 2px; line-height: 1;
+  margin-bottom: 10px;
+}
+.menu-meta-row {
+  display: flex; gap: 20px; flex-wrap: wrap;
+  font-size: 13px; color: var(--grey); margin-bottom: 20px;
+}
+.menu-meta-row span { display: flex; align-items: center; gap: 5px; }
+.menu-meta-row strong { color: var(--white); font-weight: 600; }
+
+/* PICKUP PILL */
+.pickup-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--lime-dim); border: 1px solid rgba(200,241,53,0.25);
+  border-radius: 6px; padding: 8px 14px;
+  color: var(--lime); font-size: 12px; font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.pickup-pill svg { width: 14px; height: 14px; }
+
+/* CATEGORY PILLS */
+.cat-nav {
+  display: flex; gap: 8px; overflow-x: auto;
+  padding: 20px 28px; scrollbar-width: none;
+  max-width: 760px; margin: 0 auto;
+  border-bottom: 1px solid var(--border);
+}
+.cat-nav::-webkit-scrollbar { display: none; }
+
+.cat-pill {
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 4px; padding: 8px 16px;
+  font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  cursor: pointer; white-space: nowrap;
+  text-transform: uppercase; color: var(--grey);
+  font-family: 'Syne', sans-serif;
+  transition: all 0.18s;
+}
+.cat-pill.active, .cat-pill:hover {
+  background: var(--lime); border-color: var(--lime);
+  color: var(--black);
+}
+
+/* MENU ITEMS */
+.menu-items {
+  padding: 0 28px 120px;
+  max-width: 760px; margin: 0 auto;
+}
+
+.menu-sec-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px; letter-spacing: 1px;
+  padding: 32px 0 16px;
+  display: flex; align-items: center; gap: 16px;
+}
+.menu-sec-title::after {
+  content: ''; flex: 1; height: 1px;
+  background: var(--border);
+}
+
+.menu-item {
+  display: flex; gap: 16px; align-items: center;
+  padding: 16px; margin-bottom: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; transition: border-color 0.2s;
+  animation: riseIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+}
+.menu-item:hover { border-color: rgba(200,241,53,0.3); }
+
+.item-img {
+  width: 90px; height: 90px; border-radius: 8px;
+  object-fit: cover; flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
+.item-body { flex: 1; min-width: 0; }
+.item-name {
+  font-weight: 700; font-size: 15px;
+  color: var(--white); margin-bottom: 5px;
+}
+.item-desc {
+  color: var(--grey); font-size: 12.5px; line-height: 1.55;
+  margin-bottom: 12px;
+}
+.item-footer {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 10px;
+}
+.item-price {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; letter-spacing: 1px; color: var(--lime);
+}
+
+.add-btn {
+  background: var(--lime); color: var(--black);
+  border: none; border-radius: 6px;
+  width: 36px; height: 36px; cursor: pointer;
+  font-size: 22px; font-weight: 300;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.add-btn:hover { background: #d9ff40; transform: scale(1.08); }
+
+.item-qty { display: flex; align-items: center; gap: 10px; }
+.qty-btn {
+  background: var(--glass); border: 1px solid var(--border);
+  border-radius: 5px; width: 32px; height: 32px;
+  cursor: pointer; color: var(--white);
+  font-family: 'Syne', sans-serif; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.qty-btn:hover { border-color: var(--lime); color: var(--lime); }
+.qty-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px; letter-spacing: 1px;
+  color: var(--lime); min-width: 20px; text-align: center;
+}
+
+/* ═══════════════════════════ CART SHEET ═══════════════════════════ */
+.cart-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); z-index: 200;
+  backdrop-filter: blur(6px);
+}
+.cart-overlay.open { display: flex; align-items: flex-end; justify-content: center; }
+
+.cart-sheet {
+  background: var(--dark); width: 100%;
+  border-radius: 18px 18px 0 0;
+  padding: 0 28px 40px;
+  max-height: 82vh; overflow-y: auto;
+  animation: sheetUp 0.38s cubic-bezier(0.22,1,0.36,1);
+  max-width: 760px;
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+@keyframes sheetUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.sheet-drag {
+  width: 36px; height: 3px;
+  background: var(--border); border-radius: 2px;
+  margin: 18px auto 28px;
+}
+
+.sheet-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.sheet-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 38px; letter-spacing: 1px;
+}
+.sheet-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--grey); font-size: 22px;
+  transition: color 0.15s; padding: 4px;
+}
+.sheet-close:hover { color: var(--white); }
+.sheet-from { color: var(--grey); font-size: 13px; margin-bottom: 24px; }
+.sheet-from span { color: var(--lime); font-weight: 600; }
+
+.cart-lines { display: flex; flex-direction: column; gap: 0; margin-bottom: 24px; }
+.cart-line {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.cart-line-left { flex: 1; }
+.cart-line-name { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+.cart-line-price { color: var(--grey); font-size: 13px; }
+.remove-btn {
+  background: none; border: none; cursor: pointer;
+  color: #444; font-size: 16px;
+  transition: color 0.15s; padding: 4px 8px;
+  border-radius: 4px;
+}
+.remove-btn:hover { color: var(--red); background: rgba(255,77,77,0.1); }
+
+.cart-total-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 0 24px;
+}
+.cart-total-label {
+  font-size: 12px; font-weight: 700; letter-spacing: 2px;
+  color: var(--grey); text-transform: uppercase;
+}
+.cart-total-amt {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px; letter-spacing: 1px; color: var(--lime);
+}
+
+.order-btn {
+  width: 100%; background: var(--lime); color: var(--black);
+  border: none; border-radius: 8px; padding: 18px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; letter-spacing: 2px;
+  cursor: pointer; transition: all 0.2s;
+}
+.order-btn:hover { background: #d9ff40; transform: translateY(-2px); }
+.order-btn:disabled { background: #333; color: #666; cursor: default; transform: none; }
+
+.empty-cart { text-align: center; padding: 48px 0; color: var(--grey); }
+.empty-cart .emoji { font-size: 52px; margin-bottom: 16px; display: block; }
+.empty-cart p { font-size: 15px; line-height: 1.6; }
+
+/* ═══════════════════════════ CONFIRM ═══════════════════════════ */
+.confirm-screen {
+  min-height: 100vh; display: flex;
+  align-items: center; justify-content: center;
+  padding: 90px 28px 40px;
+}
+.confirm-inner {
+  max-width: 480px; width: 100%;
+  animation: riseIn 0.6s cubic-bezier(0.22,1,0.36,1);
+}
+
+.confirm-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 130px; line-height: 1; letter-spacing: 4px;
+  color: var(--lime); opacity: 0.15;
+  margin-bottom: -60px; user-select: none;
+}
+
+.confirm-card {
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 16px;
+  padding: 36px 32px;
+}
+
+.confirm-top {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px; padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.confirm-icon-wrap {
+  width: 52px; height: 52px;
+  background: var(--lime); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; flex-shrink: 0;
+}
+.confirm-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px; letter-spacing: 1px; margin-bottom: 3px;
+}
+.confirm-subtitle { color: var(--grey); font-size: 13px; line-height: 1.5; }
+
+.confirm-rows { display: flex; flex-direction: column; gap: 0; margin-bottom: 28px; }
+.confirm-row {
+  display: flex; justify-content: space-between;
+  padding: 11px 0; border-bottom: 1px solid var(--border);
+  font-size: 13.5px;
+}
+.confirm-row:last-child { border-bottom: none; }
+.confirm-row .label { color: var(--grey); }
+.confirm-row .val { font-weight: 600; text-align: right; max-width: 60%; }
+.confirm-row .val.lime { color: var(--lime); font-family: 'Bebas Neue'; font-size: 20px; letter-spacing: 1px; }
+
+.home-btn {
+  width: 100%; background: transparent;
+  border: 1px solid var(--lime); color: var(--lime);
+  border-radius: 8px; padding: 16px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px; letter-spacing: 2px;
+  cursor: pointer; transition: all 0.2s;
+}
+.home-btn:hover { background: var(--lime); color: var(--black); }
+
+/* ═══════════════════════════ EMPTY STATE ═══════════════════════════ */
+.no-results {
+  text-align: center; padding: 60px 0;
+  color: var(--grey); font-size: 15px;
+}
+.no-results strong { color: var(--white); display: block; font-size: 18px; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<!-- ════════════ HOME ════════════ -->
+<div id="home" class="screen active">
+  <nav>
+    <div class="nav-logo">GRUB</div>
+    <div class="nav-right">
+      <!-- Fix 1: type="button" on all buttons -->
+      <button type="button" class="cart-btn" onclick="openCart()">
+        <span>MY ORDER</span>
+        <span class="cart-count" id="cart-count">0</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="home-hero">
+    <div class="hero-rule">
+      <div class="hero-rule-line"></div>
+      <div class="hero-rule-dot"></div>
+      <div class="hero-rule-label">Pickup Only · No Delivery</div>
+      <div class="hero-rule-dot"></div>
+      <div class="hero-rule-line"></div>
+    </div>
+
+    <h1 class="hero-h1">
+      ORDER<br>
+      <span class="accent">FRESH.</span>
+      <span class="serif">pick it up yourself.</span>
+    </h1>
+
+    <p class="hero-sub">Skip the queue. Order ahead from local restaurants, collect when it's hot and ready.</p>
+
+    <div class="search-wrap">
+      <div class="search-icon">⌕</div>
+      <!-- Fix 3: aria-label for screen readers -->
+      <input
+        type="text"
+        id="search-input"
+        placeholder="Search restaurants or dishes…"
+        oninput="filterBiz()"
+        aria-label="Search restaurants or dishes"
+      >
+      <!-- Fix 1: type="button" -->
+      <button type="button" onclick="filterBiz()">SEARCH</button>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <h2>RESTAURANTS</h2>
+    <span>2 OPEN NOW</span>
+  </div>
+
+  <!-- Fix 6: aria-live for dynamic content updates -->
+  <div class="businesses" id="biz-list" aria-live="polite"></div>
+</div>
+
+<!-- ════════════ MENU ════════════ -->
+<div id="menu" class="screen">
+  <nav>
+    <div class="nav-logo">GRUB</div>
+    <div class="nav-right">
+      <!-- Fix 1: type="button" -->
+      <button type="button" class="back-btn" onclick="goHome()">← BACK</button>
+      <button type="button" class="cart-btn" onclick="openCart()">
+        <span>MY ORDER</span>
+        <span class="cart-count" id="cart-count-2">0</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="menu-hero">
+    <!-- Fix 2: loading="lazy" | Fix 4: fallback alt text -->
+    <img id="menu-banner" src="" alt="Restaurant banner" loading="lazy">
+    <div class="menu-hero-overlay"></div>
+  </div>
+
+  <div class="menu-header">
+    <h2 class="menu-biz-name" id="menu-biz-name"></h2>
+    <div class="menu-meta-row">
+      <span>⭐ <strong id="menu-rating"></strong></span>
+      <span>📍 <strong id="menu-location"></strong></span>
+      <span>⏱ Ready in <strong id="menu-time"></strong></span>
+    </div>
+    <div class="pickup-pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      PICKUP ONLY — WE'LL ALERT YOU WHEN READY
+    </div>
+  </div>
+
+  <div class="cat-nav" id="cat-nav"></div>
+  <div class="menu-items" id="menu-items"></div>
+</div>
+
+<!-- ════════════ CONFIRM ════════════ -->
+<div id="confirm" class="screen">
+  <nav>
+    <div class="nav-logo">GRUB</div>
+  </nav>
+  <div class="confirm-screen">
+    <div class="confirm-inner">
+      <div class="confirm-num" id="confirm-order-num">#0000</div>
+      <div class="confirm-card">
+        <div class="confirm-top">
+          <div class="confirm-icon-wrap">🎯</div>
+          <div>
+            <div class="confirm-title">ORDER PLACED</div>
+            <div class="confirm-subtitle">Head over when it's ready.<br>We'll prep it fresh, just for you.</div>
+          </div>
+        </div>
+        <div class="confirm-rows" id="confirm-detail"></div>
+        <!-- Fix 1: type="button" -->
+        <button type="button" class="home-btn" onclick="resetApp()">BACK TO HOME</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ CART SHEET ════════════ -->
+<div
+  class="cart-overlay"
+  id="cart-overlay"
+  onclick="closeCartOutside(event)"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="cart-title"
+>
+  <div class="cart-sheet">
+    <div class="sheet-drag"></div>
+    <div class="sheet-head">
+  <div class="sheet-title" id="cart-title">YOUR ORDER</div>
+      <!-- Fix 1: type="button" -->
+      <button type="button" class="sheet-close" onclick="document.getElementById('cart-overlay').classList.remove('open')">✕</button>
+    </div>
+    <div class="sheet-from" id="cart-biz-name">—</div>
+    <div class="cart-lines" id="cart-items-list"></div>
+    <div class="cart-total-row">
+      <div class="cart-total-label">Total</div>
+      <div class="cart-total-amt" id="cart-total">$0.00</div>
+    </div>
+    <!-- Fix 1: type="button" -->
+    <button type="button" class="order-btn" id="order-btn" onclick="placeOrder()">PLACE ORDER · PICKUP</button>
+  </div>
+</div>
+
+  </div>
+
+<script src="firebase.config.js"></script>
+<script src="firebase.service.js"></script>
+<script src="firestore.structure.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
+
