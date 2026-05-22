@@ -1,1 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRUB Vendor Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#0A0A0A;--dark:#111;--surface:#181818;
+  --glass:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);
+  --lime:#C8F135;--lime-dim:rgba(200,241,53,0.10);--lime-border:rgba(200,241,53,0.25);
+  --white:#F5F5F0;--grey:#888880;--red:#FF4D4D;--red-dim:rgba(255,77,77,0.10);
+  --amber:#F5A623;--amber-dim:rgba(245,166,35,0.12);
+  --blue:#4A9EFF;--blue-dim:rgba(74,158,255,0.12);
+}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.35}
+.screen{display:none;min-height:100vh;position:relative;z-index:1}
+.screen.active{display:block}
+@keyframes riseIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes loadFill{from{width:0}to{width:100%}}
+.auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(ellipse at 20% 50%, rgba(200,241,53,0.05) 0%, transparent 60%),
+             radial-gradient(ellipse at 80% 20%, rgba(200,241,53,0.03) 0%, transparent 50%)}
+.auth-card{width:100%;max-width:440px;animation:riseIn .6s cubic-bezier(.22,1,.36,1)}
+.auth-logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;color:var(--lime);line-height:1;margin-bottom:4px}
+.auth-tagline{font-family:'Instrument Serif',serif;font-style:italic;color:var(--grey);font-size:16px;margin-bottom:40px}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px}
+.auth-tabs{display:flex;gap:0;margin-bottom:28px;background:var(--black);border-radius:8px;padding:4px}
+.auth-tab{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;cursor:pointer;border-radius:6px;transition:all .2s;color:var(--grey);border:none;
+  background:none;font-family:'Syne',sans-serif}
+.auth-tab.active{background:var(--lime);color:var(--black)}
+.field-group{margin-bottom:18px}
+.field-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);margin-bottom:8px;display:block}
+.field-input{width:100%;background:var(--black);border:1px solid var(--border);border-radius:8px;
+  padding:13px 16px;color:var(--white);font-family:'Syne',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.field-input:focus{border-color:var(--lime)}
+.field-input::placeholder{color:#444}
+select.field-input option{background:var(--dark)}
+.auth-btn{width:100%;background:var(--lime);color:var(--black);border:none;border-radius:8px;
+  padding:16px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;
+  cursor:pointer;transition:all .2s;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.auth-btn:hover{background:#d9ff40;transform:translateY(-1px)}
+.auth-btn:disabled{background:#282828;color:#555;cursor:default;transform:none}
+.auth-error{background:var(--red-dim);border:1px solid rgba(255,77,77,.3);border-radius:8px;
+  padding:12px 14px;font-size:13px;color:var(--red);margin-bottom:16px;display:none}
+.auth-error.show{display:block}
+.spinner{width:18px;height:18px;border:2px solid rgba(0,0,0,.3);border-top-color:var(--black);border-radius:50%;animation:spin .7s linear infinite}
+.dash-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:64px;
+  display:flex;align-items:center;justify-content:space-between;padding:0 28px;
+  background:rgba(10,10,10,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.dash-nav-left{display:flex;align-items:center;gap:20px}
+.dash-logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--lime)}
+.dash-biz-name{font-size:13px;font-weight:600;color:var(--grey);padding-left:20px;border-left:1px solid var(--border)}
+.dash-nav-right{display:flex;align-items:center;gap:12px}
+.open-toggle{display:flex;align-items:center;gap:10px;background:var(--surface);
+  border:1px solid var(--border);border-radius:8px;padding:8px 14px;cursor:pointer;transition:all .2s}
+.open-toggle:hover{border-color:var(--lime)}
+.toggle-dot{width:8px;height:8px;border-radius:50%;background:var(--red);transition:background .3s;box-shadow:0 0 8px var(--red)}
+.open-toggle.open .toggle-dot{background:var(--lime);box-shadow:0 0 8px var(--lime);animation:pulse 2s infinite}
+.toggle-label{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.open-toggle.open .toggle-label{color:var(--lime)}
+.logout-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:8px 14px;
+  color:var(--grey);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:.5px;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.logout-btn:hover{border-color:var(--red);color:var(--red)}
+.dash-body{padding-top:64px;display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+.dash-sidebar{background:var(--dark);border-right:1px solid var(--border);padding:28px 0;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto}
+.sidebar-section{margin-bottom:8px}
+.sidebar-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--grey);padding:0 20px 8px}
+.sidebar-item{display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;transition:all .15s;
+  color:var(--grey);font-size:14px;font-weight:600;border-left:2px solid transparent}
+.sidebar-item:hover{color:var(--white);background:var(--glass)}
+.sidebar-item.active{color:var(--lime);border-left-color:var(--lime);background:var(--lime-dim)}
+.sidebar-item .icon{font-size:16px;flex-shrink:0}
+.sidebar-badge{background:var(--red);color:white;border-radius:10px;padding:2px 7px;
+  font-size:10px;font-weight:800;margin-left:auto;animation:pulse 1.5s infinite}
+.dash-main{padding:28px;overflow-y:auto}
+.dash-tab{display:none}
+.dash-tab.active{display:block;animation:fadeIn .3s ease}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;animation:riseIn .5s cubic-bezier(.22,1,.36,1) both}
+.stat-card:nth-child(2){animation-delay:.08s}
+.stat-card:nth-child(3){animation-delay:.16s}
+.stat-card:nth-child(4){animation-delay:.24s}
+.stat-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);margin-bottom:10px}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:1px;line-height:1}
+.stat-val.lime{color:var(--lime)}
+.stat-val.amber{color:var(--amber)}
+.stat-val.red{color:var(--red)}
+.stat-sub{font-size:12px;color:var(--grey);margin-top:4px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px}
+.sec-meta{font-size:12px;color:var(--grey);letter-spacing:.5px}
+.live-badge{display:inline-flex;align-items:center;gap:6px;background:var(--red-dim);
+  border:1px solid rgba(255,77,77,.3);border-radius:4px;padding:4px 10px;
+  font-size:11px;font-weight:700;letter-spacing:1px;color:var(--red);text-transform:uppercase}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1s infinite}
+.orders-grid{display:flex;flex-direction:column;gap:12px}
+.order-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .2s;animation:slideIn .4s cubic-bezier(.22,1,.36,1) both}
+.order-card:hover{border-color:var(--lime-border)}
+.order-card.status-pending{border-left:3px solid var(--red)}
+.order-card.status-preparing{border-left:3px solid var(--amber)}
+.order-card.status-ready{border-left:3px solid var(--lime)}
+.order-card.status-completed{border-left:3px solid #444;opacity:.7}
+.order-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}
+.order-num{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--white)}
+.order-time{font-size:12px;color:var(--grey)}
+.order-status-badge{padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.badge-pending{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,77,.3)}
+.badge-preparing{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,.3)}
+.badge-ready{background:var(--lime-dim);color:var(--lime);border:1px solid var(--lime-border)}
+.badge-completed{background:rgba(100,100,100,.1);color:#666;border:1px solid #333}
+.order-body{padding:16px 18px}
+.order-customer{font-size:13px;color:var(--grey);margin-bottom:12px}
+.order-customer strong{color:var(--white);font-weight:600}
+.order-items{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.order-item-line{display:flex;justify-content:space-between;font-size:13px}
+.order-item-name{color:var(--white)}
+.order-item-qty{color:var(--grey)}
+.order-item-price{color:var(--lime);font-weight:600}
+.order-foot{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border)}
+.order-total{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--lime)}
+.order-actions{display:flex;gap:8px}
+.action-btn{border:none;border-radius:6px;padding:8px 14px;font-family:'Syne',sans-serif;
+  font-size:12px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.btn-prepare{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,.3)}
+.btn-prepare:hover{background:var(--amber);color:var(--black)}
+.btn-ready{background:var(--lime-dim);color:var(--lime);border:1px solid var(--lime-border)}
+.btn-ready:hover{background:var(--lime);color:var(--black)}
+.btn-complete{background:rgba(100,100,100,.1);color:#888;border:1px solid #333}
+.btn-complete:hover{background:#333;color:var(--white)}
+.empty-state{text-align:center;padding:64px 24px;color:var(--grey)}
+.empty-icon{font-size:48px;margin-bottom:16px;display:block;opacity:.5}
+.empty-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--white);margin-bottom:8px}
+.empty-sub{font-size:14px;line-height:1.6}
+.history-filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.filter-pill{background:transparent;border:1px solid var(--border);border-radius:4px;
+  padding:7px 14px;font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--grey);
+  cursor:pointer;text-transform:uppercase;transition:all .18s;font-family:'Syne',sans-serif}
+.filter-pill.active,.filter-pill:hover{background:var(--lime);border-color:var(--lime);color:var(--black)}
+.history-table{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.history-row{display:grid;grid-template-columns:120px 1fr 100px 100px 120px;
+  padding:14px 18px;border-bottom:1px solid var(--border);align-items:center;font-size:13px;transition:background .15s}
+.history-row:last-child{border-bottom:none}
+.history-row:hover{background:var(--glass)}
+.history-row.header{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--grey);background:var(--black)}
+.history-row.header:hover{background:var(--black)}
+.h-order{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px}
+.h-total{color:var(--lime);font-weight:700}
+.loading-overlay{position:fixed;inset:0;background:var(--black);z-index:999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.loading-logo{font-family:'Bebas Neue',sans-serif;font-size:60px;letter-spacing:6px;color:var(--lime)}
+.loading-bar{width:200px;height:2px;background:var(--border);border-radius:2px;overflow:hidden}
+.loading-fill{height:100%;background:var(--lime);border-radius:2px;animation:loadFill 1.5s ease forwards}
+.toast{position:fixed;bottom:28px;right:28px;z-index:999;background:var(--surface);
+  border:1px solid var(--lime-border);border-radius:10px;padding:14px 18px;
+  font-size:13px;font-weight:600;color:var(--lime);display:none;
+  animation:slideIn .3s ease;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.toast.show{display:flex;align-items:center;gap:10px}
+.toast.error{border-color:rgba(255,77,77,.3);color:var(--red)}
+@media(max-width:768px){
+  .dash-body{grid-template-columns:1fr}
+  .dash-sidebar{display:none}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .history-row{grid-template-columns:80px 1fr 80px 80px}
+  .history-row .h-wait{display:none}
+}
+</style>
+</head>
+<body>
 
+<div class="loading-overlay" id="loading">
+  <div class="loading-logo">GRUB</div>
+  <div class="loading-bar"><div class="loading-fill"></div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="auth" class="screen">
+  <div class="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo">GRUB</div>
+      <div class="auth-tagline">Vendor Dashboard</div>
+      <div class="auth-box">
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+          <button type="button" class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+        </div>
+        <div class="auth-error" id="auth-error"></div>
+        <div id="login-form">
+          <div class="field-group">
+            <label class="field-label">Email</label>
+            <input type="email" class="field-input" id="login-email" placeholder="you@restaurant.com">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Password</label>
+            <input type="password" class="field-input" id="login-password" placeholder="••••••••">
+          </div>
+          <button type="button" class="auth-btn" id="login-btn" onclick="handleLogin()">
+            <span>LOGIN</span>
+          </button>
+        </div>
+        <div id="signup-form" style="display:none">
+          <div class="field-group">
+            <label class="field-label">Your Restaurant</label>
+            <select class="field-input" id="signup-biz">
+              <option value="">Select your restaurant…</option>
+              <option value="noodlebar">Noodle Bar</option>
+              <option value="paprika">Paprika Kitchen</option>
+              <option value="smokehouse">The Smokehouse</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Email</label>
+            <input type="email" class="field-input" id="signup-email" placeholder="you@restaurant.com">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Password</label>
+            <input type="password" class="field-input" id="signup-password" placeholder="Min. 6 characters">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Confirm Password</label>
+            <input type="password" class="field-input" id="signup-confirm" placeholder="Repeat password">
+          </div>
+          <button type="button" class="auth-btn" id="signup-btn" onclick="handleSignup()">
+            <span>CREATE ACCOUNT</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="dashboard" class="screen">
+  <nav class="dash-nav">
+    <div class="dash-nav-left">
+      <div class="dash-logo">GRUB</div>
+      <div class="dash-biz-name" id="dash-biz-name">—</div>
+    </div>
+    <div class="dash-nav-right">
+      <div class="open-toggle" id="open-toggle" onclick="toggleOpen()">
+        <div class="toggle-dot"></div>
+        <span class="toggle-label" id="toggle-label">CLOSED</span>
+      </div>
+      <button type="button" class="logout-btn" onclick="handleLogout()">Logout</button>
+    </div>
+  </nav>
+  <div class="dash-body">
+    <div class="dash-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Dashboard</div>
+        <div class="sidebar-item active" onclick="switchTab('orders')" id="nav-orders">
+          <span class="icon">📋</span> Live Orders
+          <span class="sidebar-badge" id="pending-badge" style="display:none">0</span>
+        </div>
+        <div class="sidebar-item" onclick="switchTab('history')" id="nav-history">
+          <span class="icon">🕐</span> Order History
+        </div>
+      </div>
+    </div>
+    <div class="dash-main">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Pending</div>
+          <div class="stat-val red" id="stat-pending">0</div>
+          <div class="stat-sub">Need action</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Preparing</div>
+          <div class="stat-val amber" id="stat-preparing">0</div>
+          <div class="stat-sub">In kitchen</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ready</div>
+          <div class="stat-val lime" id="stat-ready">0</div>
+          <div class="stat-sub">For pickup</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Today's Revenue</div>
+          <div class="stat-val lime" id="stat-revenue">$0</div>
+          <div class="stat-sub">Completed orders</div>
+        </div>
+      </div>
+      <div class="dash-tab active" id="tab-orders">
+        <div class="sec-head">
+          <div class="sec-title">LIVE ORDERS</div>
+          <div class="live-badge"><div class="live-dot"></div>Real-time</div>
+        </div>
+        <div class="orders-grid" id="orders-grid">
+          <div class="empty-state">
+            <span class="empty-icon">🍽</span>
+            <div class="empty-title">NO ACTIVE ORDERS</div>
+            <div class="empty-sub">New orders will appear here in real-time</div>
+          </div>
+        </div>
+      </div>
+      <div class="dash-tab" id="tab-history">
+        <div class="sec-head">
+          <div class="sec-title">ORDER HISTORY</div>
+          <div class="sec-meta" id="history-meta">—</div>
+        </div>
+        <div class="history-filters">
+          <button type="button" class="filter-pill active" onclick="filterHistory('all',this)">All</button>
+          <button type="button" class="filter-pill" onclick="filterHistory('completed',this)">Completed</button>
+          <button type="button" class="filter-pill" onclick="filterHistory('pending',this)">Pending</button>
+          <button type="button" class="filter-pill" onclick="filterHistory('preparing',this)">Preparing</button>
+          <button type="button" class="filter-pill" onclick="filterHistory('ready',this)">Ready</button>
+        </div>
+        <div class="history-table">
+          <div class="history-row header">
+            <div>Order</div><div>Items</div><div>Total</div><div>Status</div><div class="h-wait">Time</div>
+          </div>
+          <div id="history-body"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="dashboard.js"></script>
+</body>
+</html>
