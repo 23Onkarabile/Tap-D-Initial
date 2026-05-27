@@ -62,6 +62,8 @@ async function init() {
   // Subscribe to businesses with real-time updates (isOpen changes, etc.)
   unsubscribeBusinesses = subscribeToBusinesses((data) => {
     businesses = data;
+    const openCount = data.filter(b => b.isOpen).length;
+    document.getElementById('open-count').textContent = openCount + ' OPEN NOW';
     renderBizCards(businesses);
   });
 
