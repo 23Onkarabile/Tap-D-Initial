@@ -1,25 +1,9 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+import { import { auth, db } from './firebase.config.js';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where,
+import { doc, getDoc, setDoc, updateDoc, collection, query, where,
   orderBy, onSnapshot, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-// ══ FIREBASE INIT ══
-let app, auth, db;
-
-try {
-  const configModule = await import('./firebase.config.js');
-  const firebaseConfig = configModule.firebaseConfig || configModule.default;
-  app  = initializeApp(firebaseConfig, 'dashboard');
-  auth = getAuth(app);
-  db   = getFirestore(app);
-} catch(e) {
-  console.warn('Could not load firebase.config.js');
-  document.getElementById('loading').style.display = 'none';
-  showScreen('auth');
-  showError('Firebase config not found. Ensure firebase.config.js is in the same folder.');
-}
 
 // ══ STATE ══
 let currentUser   = null;
