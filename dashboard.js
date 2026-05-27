@@ -332,5 +332,9 @@ function friendlyAuthError(code){
 }
 
 setTimeout(() => {
-  document.getElementById('loading').style.display = 'none';
-}, 1500);
+  const loading = document.getElementById('loading');
+  if(loading) loading.style.display = 'none';
+  // If no screen is active yet, show auth
+  const anyActive = document.querySelector('.screen.active');
+  if(!anyActive) showScreen('auth');
+}, 3000);
