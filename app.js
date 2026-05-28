@@ -281,7 +281,9 @@ function closeCartOutside(e) {
   if (e.target === document.getElementById("cart-overlay"))
     document.getElementById("cart-overlay").classList.remove("open");
 }
-
+function closeCart() {
+  document.getElementById("cart-overlay").classList.remove("open");
+}
 // ══════════════════════════════════════════════
 // ORDER PLACEMENT — Now writes to Firestore
 // ══════════════════════════════════════════════
@@ -395,6 +397,7 @@ window.openMenu = openMenu;
 window.filterBiz = filterBiz;
 window.openCart = openCart;
 window.closeCartOutside = closeCartOutside;
+window.closeCart = closeCart;
 window.removeFromCart = removeFromCart;
 window.addItem = addItem;
 window.changeQty = changeQty;
