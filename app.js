@@ -341,7 +341,7 @@ async function submitOrder() {
     console.error("Order failed:", err);
     orderBtn.disabled = false;
     orderBtn.textContent = "Place Order";
-    alert("Something went wrong. Please try again.");
+    alert("Error: " + err.message);
   }
 }
 
