@@ -315,7 +315,8 @@ async function submitOrder() {
     });
 
     // Show confirmation screen
-    document.getElementById("confirm-order-num").textContent = `#${order.orderNumber}`;
+    const ghostEl = document.getElementById("confirm-ghost");
+if(ghostEl) ghostEl.textContent = `#${order.orderNumber}`;
     document.getElementById("confirm-detail").innerHTML = `
       <div class="confirm-row"><span class="label">Order</span><span class="val">${order.orderNumber}</span></div>
       <div class="confirm-row"><span class="label">From</span><span class="val">${activeBiz.name}</span></div>
