@@ -76,17 +76,21 @@ function updateOpenToggle(isOpen){
 // ══ SUBSCRIBE ORDERS (real-time) ══
 function subscribeOrders(){
   if(ordersUnsub) ordersUnsub();
-  const q = query(
-    collection(db, 'orders'),
-    where('businessId', '==', currentBizId),
-    orderBy('createdAt', 'desc')
-  );
+  alert('Querying orders for: ' + currentBizId);
+const q = query(
+  collection(db, 'orders'),
+  where('businessId', '==', currentBizId),
+  orderBy('createdAt', 'desc')
+);
   ordersUnsub = onSnapshot(q, snap => {
     allOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderLiveOrders();
     renderStats();
     renderHistory();
-  }, err => console.error('Orders listener:', err));
+  }, err => {
+  console.error('Orders listener:', err);
+  alert('Orders error: ' + err.message);
+});
 }
 
 // ══ RENDER LIVE ORDERS ══
