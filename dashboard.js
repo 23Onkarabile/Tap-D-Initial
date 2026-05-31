@@ -76,7 +76,7 @@ function updateOpenToggle(isOpen){
 // ══ SUBSCRIBE ORDERS (real-time) ══
 function subscribeOrders(){
   if(ordersUnsub) ordersUnsub();
-  alert('Querying orders for: ' + currentBizId);
+  
 const q = query(
   collection(db, 'orders'),
   where('businessId', '==', currentBizId),
@@ -89,7 +89,7 @@ const q = query(
     renderHistory();
   }, err => {
   console.error('Orders listener:', err);
-  prompt('Copy this URL:', err.message.match(/https:\/\/\S+/)?.[0] || 'no url');
+  
 });
 }
 
