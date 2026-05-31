@@ -89,7 +89,7 @@ const q = query(
     renderHistory();
   }, err => {
   console.error('Orders listener:', err);
-  alert('Orders error: ' + err.message);
+  prompt('Copy this URL:', err.message.match(/https:\/\/\S+/)?.[0] || 'no url');
 });
 }
 
