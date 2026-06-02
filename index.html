@@ -12,6 +12,7 @@
   --glass:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);
   --lime:#C8F135;--lime-dim:rgba(200,241,53,0.10);--lime-border:rgba(200,241,53,0.25);
   --white:#F5F5F0;--grey:#888880;--red:#FF4D4D;--red-dim:rgba(255,77,77,0.10);
+  --amber:#F5A623;--amber-dim:rgba(245,166,35,0.12);
 }
 html{scroll-behavior:smooth}
 body{background:var(--black);color:var(--white);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden}
@@ -23,7 +24,9 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 @keyframes sheetUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
-@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes flashGreen{0%,100%{background:var(--black)}50%{background:rgba(200,241,53,0.08)}}
+@keyframes bannerIn{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;
@@ -35,7 +38,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   border:none;border-radius:6px;padding:10px 18px;cursor:pointer;font-family:'Syne',sans-serif;
   font-size:13px;font-weight:700;letter-spacing:.5px;transition:all .2s}
 .cart-btn:hover{background:#d9ff40;transform:translateY(-1px)}
-.cart-btn.shake{animation:shake .4s ease}
 .cart-count{background:var(--black);color:var(--lime);border-radius:4px;padding:2px 7px;
   font-size:11px;font-weight:800;min-width:22px;text-align:center}
 .back-btn{background:var(--glass);color:var(--white);border:1px solid var(--border);
@@ -43,177 +45,108 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   font-size:13px;font-weight:600;transition:all .2s;backdrop-filter:blur(8px)}
 .back-btn:hover{border-color:var(--lime);color:var(--lime)}
 
-/* HOME HERO WITH BACKGROUND IMAGE */
+/* HOME HERO */
 .home-hero-wrap{position:relative;overflow:hidden;padding-top:64px}
-
-/* Background image layer */
-.hero-bg{
-  position:absolute;inset:0;z-index:0;
-  background-image:url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1400&q=80'),
-                   url('https://images.unsplash.com/photo-1561651823-34feb02250e4?w=1400&q=80');
+.hero-bg{position:absolute;inset:0;z-index:0;
   background-image:url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600&q=80');
   background-size:cover;background-position:center;
-  filter:brightness(0.22) saturate(1.2);
-  transform:scale(1.05);
-  transition:transform 8s ease;
-}
+  filter:brightness(0.22) saturate(1.2);transform:scale(1.05);transition:transform 8s ease}
 .home-hero-wrap:hover .hero-bg{transform:scale(1.08)}
-
-/* Gradient overlays */
-.hero-bg-overlay{
-  position:absolute;inset:0;z-index:1;
-  background:
-    linear-gradient(to bottom, rgba(10,10,10,0.6) 0%, transparent 30%, transparent 60%, rgba(10,10,10,1) 100%),
-    linear-gradient(to right, rgba(10,10,10,0.7) 0%, transparent 60%);
-}
-
-/* Lime glow blob */
-.hero-glow{
-  position:absolute;bottom:-100px;right:-80px;z-index:1;
-  width:500px;height:500px;border-radius:50%;
-  background:radial-gradient(circle, rgba(200,241,53,0.08) 0%, transparent 70%);
-  pointer-events:none;
-}
-
-.home-hero{
-  position:relative;z-index:2;
-  padding:60px 28px 72px;
-  max-width:760px;margin:0 auto;
-}
-
+.hero-bg-overlay{position:absolute;inset:0;z-index:1;
+  background:linear-gradient(to bottom,rgba(10,10,10,0.6) 0%,transparent 30%,transparent 60%,rgba(10,10,10,1) 100%),
+  linear-gradient(to right,rgba(10,10,10,0.7) 0%,transparent 60%)}
+.hero-glow{position:absolute;bottom:-100px;right:-80px;z-index:1;width:500px;height:500px;
+  border-radius:50%;background:radial-gradient(circle,rgba(200,241,53,0.08) 0%,transparent 70%);pointer-events:none}
+.home-hero{position:relative;z-index:2;padding:60px 28px 72px;max-width:760px;margin:0 auto}
 .hero-rule{display:flex;align-items:center;gap:14px;margin-bottom:32px}
 .hero-rule-line{flex:1;height:1px;background:rgba(255,255,255,0.12)}
 .hero-rule-dot{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 12px var(--lime)}
 .hero-rule-label{font-size:11px;font-weight:700;letter-spacing:2.5px;color:var(--grey);text-transform:uppercase}
-
 .hero-h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(72px,14vw,140px);
-  line-height:.9;letter-spacing:2px;margin-bottom:8px;
-  animation:fadeUp .8s cubic-bezier(.22,1,.36,1) both}
+  line-height:.9;letter-spacing:2px;margin-bottom:8px;animation:fadeUp .8s cubic-bezier(.22,1,.36,1) both}
 .hero-h1 .accent{color:var(--lime)}
 .hero-h1 .serif{font-family:'Instrument Serif',serif;font-style:italic;font-size:.65em;
   color:rgba(245,245,240,0.6);display:block;letter-spacing:0}
-
-.hero-sub{color:rgba(245,245,240,0.55);font-size:15px;line-height:1.7;
-  max-width:420px;margin:24px 0 36px;animation:fadeUp .8s .15s cubic-bezier(.22,1,.36,1) both}
-
-/* floating chips */
-.hero-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:36px;
-  animation:fadeUp .8s .25s cubic-bezier(.22,1,.36,1) both}
+.hero-sub{color:rgba(245,245,240,0.55);font-size:15px;line-height:1.7;max-width:420px;
+  margin:24px 0 36px;animation:fadeUp .8s .15s cubic-bezier(.22,1,.36,1) both}
+.hero-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:36px;animation:fadeUp .8s .25s cubic-bezier(.22,1,.36,1) both}
 .hero-chip{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
   border-radius:50px;padding:6px 14px;font-size:12px;font-weight:600;
   color:rgba(245,245,240,0.5);letter-spacing:.3px}
 .hero-chip.hot{border-color:var(--lime-border);color:var(--lime);background:var(--lime-dim)}
-
-/* SEARCH */
-.search-wrap{display:flex;max-width:500px;margin-bottom:0;
-  border:1px solid rgba(255,255,255,0.12);border-radius:8px;
-  overflow:hidden;background:rgba(24,24,24,0.85);
-  transition:border-color .2s;backdrop-filter:blur(12px);
-  animation:fadeUp .8s .3s cubic-bezier(.22,1,.36,1) both}
+.search-wrap{display:flex;max-width:500px;margin-bottom:0;border:1px solid rgba(255,255,255,0.12);
+  border-radius:8px;overflow:hidden;background:rgba(24,24,24,0.85);transition:border-color .2s;
+  backdrop-filter:blur(12px);animation:fadeUp .8s .3s cubic-bezier(.22,1,.36,1) both}
 .search-wrap:focus-within{border-color:var(--lime)}
 .search-icon{padding:0 16px;color:var(--grey);font-size:17px;display:flex;align-items:center}
 .search-wrap input{flex:1;border:none;outline:none;background:transparent;
   font-family:'Syne',sans-serif;font-size:14px;color:var(--white);padding:14px 0}
 .search-wrap input::placeholder{color:#555}
 .search-wrap button{background:var(--lime);color:var(--black);border:none;padding:0 22px;
-  font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;
-  letter-spacing:.5px;transition:background .15s;white-space:nowrap}
+  font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:background .15s}
 .search-wrap button:hover{background:#d9ff40}
-
-/* SECTION HEAD */
 .section-head{display:flex;align-items:baseline;justify-content:space-between;
   padding:0 28px;max-width:760px;margin:0 auto 20px}
 .section-head h2{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px}
 .section-head span{font-size:12px;color:var(--grey);letter-spacing:1px}
+.section-divider{height:1px;background:var(--border);max-width:760px;margin:40px auto;position:relative}
+.section-divider::after{content:'TAP TO ORDER';position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);background:var(--black);padding:0 16px;
+  font-size:10px;font-weight:700;letter-spacing:2.5px;color:var(--grey);white-space:nowrap}
 
 /* BIZ CARDS */
-.businesses{padding:0 28px 120px;max-width:760px;margin:0 auto;
-  display:flex;flex-direction:column;gap:16px}
+.businesses{padding:0 28px 120px;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 .biz-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;
-  overflow:hidden;cursor:pointer;transition:border-color .25s,transform .25s;
-  animation:riseIn .55s cubic-bezier(.22,1,.36,1) both}
-.biz-card:nth-child(2){animation-delay:.12s}
+  overflow:hidden;cursor:pointer;transition:border-color .25s,transform .25s;animation:riseIn .55s cubic-bezier(.22,1,.36,1) both}
 .biz-card:hover{border-color:var(--lime);transform:translateY(-3px)}
 .biz-card:hover .biz-arrow{color:var(--lime);transform:translateX(4px)}
 .biz-card:hover .biz-img-wrap img{transform:scale(1.04)}
 .biz-img-wrap{height:200px;position:relative;overflow:hidden}
 .biz-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
-.biz-img-gradient{position:absolute;inset:0;
-  background:linear-gradient(180deg,transparent 30%,rgba(10,10,10,.85) 100%)}
+.biz-img-gradient{position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(10,10,10,.85) 100%)}
 .biz-status{position:absolute;top:14px;left:14px;display:flex;align-items:center;gap:6px;
-  background:rgba(10,10,10,.75);backdrop-filter:blur(10px);
-  border:1px solid var(--lime-border);border-radius:4px;padding:5px 10px;
-  font-size:11px;font-weight:700;letter-spacing:1px;color:var(--lime);text-transform:uppercase}
-.status-dot{width:6px;height:6px;border-radius:50%;background:var(--lime);
-  box-shadow:0 0 8px var(--lime);animation:pulse 2s infinite}
-.biz-rating-badge{position:absolute;bottom:14px;right:14px;background:var(--lime);
-  color:var(--black);border-radius:4px;padding:6px 10px;font-size:15px;font-weight:800}
+  background:rgba(10,10,10,.75);backdrop-filter:blur(10px);border:1px solid var(--lime-border);
+  border-radius:4px;padding:5px 10px;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--lime);text-transform:uppercase}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 8px var(--lime);animation:pulse 2s infinite}
+.biz-rating-badge{position:absolute;bottom:14px;right:14px;background:var(--lime);color:var(--black);
+  border-radius:4px;padding:6px 10px;font-size:15px;font-weight:800}
 .biz-body{padding:20px 22px 22px}
 .biz-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.biz-name{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:1px;
-  color:var(--white);line-height:1;margin-bottom:8px}
+.biz-name{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:1px;color:var(--white);line-height:1;margin-bottom:8px}
 .biz-arrow{font-size:22px;color:var(--grey);transition:all .2s;margin-top:4px;flex-shrink:0}
 .biz-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
-.biz-tag{border:1px solid var(--border);border-radius:4px;padding:3px 9px;
-  font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--grey);text-transform:uppercase}
+.biz-tag{border:1px solid var(--border);border-radius:4px;padding:3px 9px;font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--grey);text-transform:uppercase}
 .biz-meta-row{display:flex;gap:20px;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap}
 .biz-meta-item{font-size:12px;color:var(--grey)}
 .biz-meta-item strong{color:var(--white);font-weight:600;display:block;font-size:13px}
+.no-results{text-align:center;padding:60px 0;color:var(--grey);font-size:15px}
+.no-results strong{color:var(--white);display:block;font-size:18px;margin-bottom:6px}
 
-/* EMPTY SEARCH */
-.empty-search{padding:48px 28px 80px;text-align:center;max-width:760px;margin:0 auto;animation:riseIn .4s ease}
-.empty-search-emoji{font-size:52px;margin-bottom:18px;display:block}
-.empty-search h3{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:1px;margin-bottom:10px}
-.empty-search p{color:var(--grey);font-size:14px;line-height:1.7;max-width:320px;margin:0 auto 28px}
-.empty-search-query{color:var(--white);font-weight:700}
-.sug-label{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--grey);text-transform:uppercase;margin-bottom:12px}
-.sug-pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-.sug-pill{border:1px solid var(--border);border-radius:4px;padding:8px 16px;font-size:12px;
-  font-weight:700;letter-spacing:.5px;color:var(--grey);cursor:pointer;text-transform:uppercase;
-  transition:all .2s;background:none;font-family:'Syne',sans-serif}
-.sug-pill:hover{border-color:var(--lime);color:var(--lime);background:var(--lime-dim)}
-
-/* SECTION DIVIDER */
-.section-divider{height:1px;background:var(--border);max-width:760px;margin:40px auto 40px;
-  position:relative}
-.section-divider::after{content:'TAP TO ORDER';position:absolute;top:50%;left:50%;
-  transform:translate(-50%,-50%);background:var(--black);padding:0 16px;
-  font-size:10px;font-weight:700;letter-spacing:2.5px;color:var(--grey);white-space:nowrap}
-
-/* MENU SCREEN */
+/* MENU */
 .menu-hero{padding-top:64px;height:300px;position:relative;overflow:hidden}
 .menu-hero img{width:100%;height:100%;object-fit:cover}
-.menu-hero-overlay{position:absolute;inset:0;
-  background:linear-gradient(to top,var(--black) 0%,rgba(10,10,10,.2) 60%,transparent 100%)}
+.menu-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,var(--black) 0%,rgba(10,10,10,.2) 60%,transparent 100%)}
 .menu-header{padding:0 28px 24px;max-width:760px;margin:0 auto}
-.menu-biz-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(44px,9vw,72px);
-  letter-spacing:2px;line-height:1;margin-bottom:10px}
+.menu-biz-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(44px,9vw,72px);letter-spacing:2px;line-height:1;margin-bottom:10px}
 .menu-meta-row{display:flex;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--grey);margin-bottom:18px}
 .menu-meta-row strong{color:var(--white);font-weight:600}
 .pickup-pill{display:inline-flex;align-items:center;gap:8px;background:var(--lime-dim);
   border:1px solid var(--lime-border);border-radius:6px;padding:8px 14px;
   color:var(--lime);font-size:12px;font-weight:700;letter-spacing:.5px}
 .pickup-pill svg{width:13px;height:13px}
-
-/* STICKY CAT NAV */
-.cat-nav-wrap{position:sticky;top:64px;z-index:99;
-  background:rgba(10,10,10,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
-.cat-nav{display:flex;gap:8px;overflow-x:auto;padding:12px 28px;scrollbar-width:none;
-  max-width:760px;margin:0 auto}
+.cat-nav-wrap{position:sticky;top:64px;z-index:99;background:rgba(10,10,10,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.cat-nav{display:flex;gap:8px;overflow-x:auto;padding:12px 28px;scrollbar-width:none;max-width:760px;margin:0 auto}
 .cat-nav::-webkit-scrollbar{display:none}
 .cat-pill{background:transparent;border:1px solid var(--border);border-radius:4px;padding:8px 16px;
   font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;white-space:nowrap;
   text-transform:uppercase;color:var(--grey);font-family:'Syne',sans-serif;transition:all .18s;flex-shrink:0}
 .cat-pill.active,.cat-pill:hover{background:var(--lime);border-color:var(--lime);color:var(--black)}
-
-/* MENU ITEMS */
 .menu-items{padding:0 28px 140px;max-width:760px;margin:0 auto}
 .menu-sec-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;
   padding:32px 0 16px;display:flex;align-items:center;gap:16px}
 .menu-sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
 .menu-item{display:flex;gap:16px;align-items:flex-start;padding:16px;margin-bottom:10px;
-  background:var(--surface);border:1px solid var(--border);border-radius:10px;
-  transition:border-color .2s;animation:riseIn .4s cubic-bezier(.22,1,.36,1) both}
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;transition:border-color .2s;animation:riseIn .4s cubic-bezier(.22,1,.36,1) both}
 .menu-item:hover{border-color:var(--lime-border)}
 .item-img{width:90px;height:90px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid var(--border)}
 .item-body{flex:1;min-width:0}
@@ -222,21 +155,131 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .item-footer{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .item-price{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--lime)}
 .add-btn{background:var(--lime);color:var(--black);border:none;border-radius:6px;
-  width:36px;height:36px;cursor:pointer;font-size:22px;display:flex;align-items:center;
-  justify-content:center;transition:all .15s;flex-shrink:0}
+  width:36px;height:36px;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
 .add-btn:hover{background:#d9ff40;transform:scale(1.08)}
 .item-qty{display:flex;align-items:center;gap:8px}
-.qty-btn{background:var(--glass);border:1px solid var(--border);border-radius:5px;
-  width:32px;height:32px;cursor:pointer;color:var(--white);font-family:'Syne',sans-serif;
-  font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.qty-btn{background:var(--glass);border:1px solid var(--border);border-radius:5px;width:32px;height:32px;
+  cursor:pointer;color:var(--white);font-family:'Syne',sans-serif;font-size:15px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s}
 .qty-btn:hover{border-color:var(--lime);color:var(--lime)}
-.qty-num{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;
-  color:var(--lime);min-width:18px;text-align:center}
+.qty-num{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--lime);min-width:18px;text-align:center}
 
-/* CONFLICT MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;
+/* CART SHEET */
+.cart-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;backdrop-filter:blur(6px)}
+.cart-overlay.open{display:flex;align-items:flex-end;justify-content:center}
+.cart-sheet{background:var(--dark);width:100%;border-radius:18px 18px 0 0;padding:0 28px 44px;
+  max-height:84vh;overflow-y:auto;animation:sheetUp .38s cubic-bezier(.22,1,.36,1);max-width:760px;
+  border-top:1px solid var(--border);border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.sheet-drag{width:36px;height:3px;background:var(--border);border-radius:2px;margin:18px auto 28px}
+.sheet-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.sheet-title{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:1px}
+.sheet-close{background:none;border:none;cursor:pointer;color:var(--grey);font-size:22px;padding:4px;transition:color .15s}
+.sheet-close:hover{color:var(--white)}
+.sheet-from{color:var(--grey);font-size:13px;margin-bottom:24px}
+.sheet-from span{color:var(--lime);font-weight:600}
+.cart-lines{display:flex;flex-direction:column;margin-bottom:24px}
+.cart-line{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);gap:12px}
+.cart-line-left{flex:1}
+.cart-line-name{font-weight:700;font-size:14px;margin-bottom:3px}
+.cart-line-price{color:var(--grey);font-size:13px}
+.remove-btn{background:none;border:none;cursor:pointer;color:#444;font-size:16px;padding:4px 8px;border-radius:4px;transition:all .15s;flex-shrink:0}
+.remove-btn:hover{color:var(--red);background:var(--red-dim)}
+.cart-total-row{display:flex;justify-content:space-between;align-items:center;padding:20px 0 24px;border-top:1px solid var(--border)}
+.cart-total-label{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--grey);text-transform:uppercase}
+.cart-total-amt{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px;color:var(--lime)}
+.order-btn{width:100%;background:var(--lime);color:var(--black);border:none;border-radius:8px;
+  padding:18px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;cursor:pointer;transition:all .2s}
+.order-btn:hover{background:#d9ff40;transform:translateY(-2px)}
+.order-btn:disabled{background:#282828;color:#444;cursor:default;transform:none}
+.empty-cart{text-align:center;padding:48px 0;color:var(--grey)}
+.empty-cart .emoji{font-size:52px;margin-bottom:16px;display:block}
+.empty-cart p{font-size:15px;line-height:1.6}
+
+/* CUSTOMER DETAILS MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:400;
   backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px}
 .modal-overlay.open{display:flex}
+.customer-modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:32px 28px;max-width:420px;width:100%;animation:riseIn .3s cubic-bezier(.22,1,.36,1)}
+.cm-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:6px}
+.cm-sub{color:var(--grey);font-size:13px;margin-bottom:24px;line-height:1.6}
+.cm-field{margin-bottom:16px}
+.cm-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);margin-bottom:8px;display:block}
+.cm-input{width:100%;background:var(--black);border:1px solid var(--border);border-radius:8px;
+  padding:13px 16px;color:var(--white);font-family:'Syne',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.cm-input:focus{border-color:var(--lime)}
+.cm-input::placeholder{color:#444}
+.cm-error{font-size:12px;color:var(--red);margin-bottom:16px;min-height:18px}
+.cm-note{font-size:11px;color:var(--grey);margin-bottom:20px;line-height:1.6;
+  background:var(--lime-dim);border:1px solid var(--lime-border);border-radius:6px;padding:10px 12px;color:var(--lime)}
+.cm-actions{display:flex;flex-direction:column;gap:10px}
+.cm-confirm-btn{width:100%;background:var(--lime);color:var(--black);border:none;border-radius:8px;
+  padding:16px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;
+  cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.cm-confirm-btn:hover{background:#d9ff40}
+.cm-confirm-btn:disabled{background:#282828;color:#555;cursor:default}
+.cm-cancel-btn{width:100%;background:transparent;border:1px solid var(--border);color:var(--grey);
+  border-radius:8px;padding:14px;font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.cm-cancel-btn:hover{border-color:var(--grey);color:var(--white)}
+
+/* TRACK ORDER SCREEN */
+.track-screen{min-height:100vh;padding:80px 28px 60px;max-width:520px;margin:0 auto}
+
+/* READY FLASH */
+.screen.ready-flash{animation:flashGreen 1s ease 3}
+
+/* READY BANNER */
+.ready-banner{display:none;position:fixed;top:64px;left:0;right:0;z-index:199;
+  background:var(--lime);color:var(--black);
+  padding:16px 28px;text-align:center;
+  font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;
+  animation:bannerIn .4s cubic-bezier(.22,1,.36,1)}
+.ready-banner.show{display:block}
+
+/* STATUS STEPS */
+.track-steps{display:flex;gap:0;margin:28px 0;position:relative}
+.track-steps::before{content:'';position:absolute;top:16px;left:16px;right:16px;height:2px;background:var(--border);z-index:0}
+.track-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;z-index:1}
+.step-circle{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);
+  background:var(--black);display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:var(--grey);transition:all .4s}
+.track-step.active .step-circle{border-color:var(--lime);color:var(--lime);background:var(--lime-dim);box-shadow:0 0 12px rgba(200,241,53,0.3)}
+.track-step.done .step-circle{border-color:var(--lime);background:var(--lime);color:var(--black)}
+.step-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--grey);text-align:center}
+.track-step.active .step-label,.track-step.done .step-label{color:var(--lime)}
+
+/* STATUS BADGE */
+.track-status-badge{display:inline-block;padding:10px 20px;border-radius:8px;
+  font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px}
+.track-status-badge.pending{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,77,.3)}
+.track-status-badge.preparing{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,.3)}
+.track-status-badge.ready{background:var(--lime-dim);color:var(--lime);border:1px solid var(--lime-border);
+  box-shadow:0 0 20px rgba(200,241,53,0.2);animation:pulse .8s infinite}
+.track-status-badge.completed{background:rgba(100,100,100,.1);color:#888;border:1px solid #333}
+.track-status-badge.rejected{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,77,.3)}
+.track-status-sub{color:var(--grey);font-size:14px;line-height:1.6;margin-bottom:28px}
+
+/* TRACK DETAILS */
+.track-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px}
+.track-card-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;
+  display:flex;align-items:center;gap:10px}
+.track-row{display:flex;justify-content:space-between;align-items:flex-start;
+  padding:10px 0;border-bottom:1px solid var(--border);font-size:13.5px;gap:12px}
+.track-row:last-child{border-bottom:none}
+.track-row .t-label{color:var(--grey);flex-shrink:0}
+.track-row .t-val{font-weight:600;text-align:right}
+.track-row .t-val.lime{color:var(--lime);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px}
+
+.track-order-num{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:2px;
+  color:var(--lime);margin-bottom:4px;line-height:1}
+.track-biz{font-size:14px;color:var(--grey);margin-bottom:20px}
+
+.home-btn{width:100%;background:transparent;border:1px solid var(--lime);color:var(--lime);
+  border-radius:8px;padding:16px;font-family:'Bebas Neue',sans-serif;font-size:20px;
+  letter-spacing:2px;cursor:pointer;transition:all .2s}
+.home-btn:hover{background:var(--lime);color:var(--black)}
+
+/* CONFLICT MODAL */
 .conflict-modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;
   padding:32px 28px;max-width:400px;width:100%;animation:riseIn .3s cubic-bezier(.22,1,.36,1)}
 .conflict-icon{font-size:40px;margin-bottom:16px}
@@ -251,66 +294,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   padding:13px;font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
 .btn-keep:hover{border-color:var(--grey);color:var(--white)}
 
-/* CART SHEET */
-.cart-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;
-  backdrop-filter:blur(6px)}
-.cart-overlay.open{display:flex;align-items:flex-end;justify-content:center}
-.cart-sheet{background:var(--dark);width:100%;border-radius:18px 18px 0 0;
-  padding:0 28px 44px;max-height:84vh;overflow-y:auto;
-  animation:sheetUp .38s cubic-bezier(.22,1,.36,1);max-width:760px;
-  border-top:1px solid var(--border);border-left:1px solid var(--border);border-right:1px solid var(--border)}
-.sheet-drag{width:36px;height:3px;background:var(--border);border-radius:2px;margin:18px auto 28px}
-.sheet-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
-.sheet-title{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:1px}
-.sheet-close{background:none;border:none;cursor:pointer;color:var(--grey);font-size:22px;
-  padding:4px;transition:color .15s}
-.sheet-close:hover{color:var(--white)}
-.sheet-from{color:var(--grey);font-size:13px;margin-bottom:24px}
-.sheet-from span{color:var(--lime);font-weight:600}
-.cart-lines{display:flex;flex-direction:column;margin-bottom:24px}
-.cart-line{display:flex;align-items:center;justify-content:space-between;
-  padding:14px 0;border-bottom:1px solid var(--border);gap:12px}
-.cart-line-left{flex:1}
-.cart-line-name{font-weight:700;font-size:14px;margin-bottom:3px}
-.cart-line-price{color:var(--grey);font-size:13px}
-.remove-btn{background:none;border:none;cursor:pointer;color:#444;font-size:16px;
-  padding:4px 8px;border-radius:4px;transition:all .15s;flex-shrink:0}
-.remove-btn:hover{color:var(--red);background:var(--red-dim)}
-.cart-total-row{display:flex;justify-content:space-between;align-items:center;
-  padding:20px 0 24px;border-top:1px solid var(--border)}
-.cart-total-label{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--grey);text-transform:uppercase}
-.cart-total-amt{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px;color:var(--lime)}
-.order-btn{width:100%;background:var(--lime);color:var(--black);border:none;border-radius:8px;
-  padding:18px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;
-  cursor:pointer;transition:all .2s}
-.order-btn:hover{background:#d9ff40;transform:translateY(-2px)}
-.order-btn:disabled{background:#282828;color:#444;cursor:default;transform:none}
-.empty-cart{text-align:center;padding:48px 0;color:var(--grey)}
-.empty-cart .emoji{font-size:52px;margin-bottom:16px;display:block}
-.empty-cart p{font-size:15px;line-height:1.6}
-
-/* CONFIRM */
-.confirm-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:90px 28px 40px}
-.confirm-inner{max-width:480px;width:100%;animation:riseIn .6s cubic-bezier(.22,1,.36,1)}
-.confirm-ghost{font-family:'Bebas Neue',sans-serif;font-size:130px;line-height:1;letter-spacing:4px;
-  color:var(--lime);opacity:.12;margin-bottom:-60px;user-select:none}
-.confirm-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px 32px}
-.confirm-top{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border)}
-.confirm-icon-wrap{width:52px;height:52px;background:var(--lime);border-radius:8px;
-  display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
-.confirm-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;margin-bottom:3px}
-.confirm-subtitle{color:var(--grey);font-size:13px;line-height:1.5}
-.confirm-rows{display:flex;flex-direction:column;margin-bottom:28px}
-.confirm-row{display:flex;justify-content:space-between;align-items:flex-start;
-  padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px;gap:12px}
-.confirm-row:last-child{border-bottom:none}
-.confirm-row .label{color:var(--grey);flex-shrink:0}
-.confirm-row .val{font-weight:600;text-align:right}
-.confirm-row .val.lime{color:var(--lime);font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px}
-.home-btn{width:100%;background:transparent;border:1px solid var(--lime);color:var(--lime);
-  border-radius:8px;padding:16px;font-family:'Bebas Neue',sans-serif;font-size:20px;
-  letter-spacing:2px;cursor:pointer;transition:all .2s}
-.home-btn:hover{background:var(--lime);color:var(--black)}
+.loading-state{color:var(--grey);padding:40px;text-align:center;font-size:14px}
+.error{color:var(--red);padding:20px;text-align:center;font-size:14px}
+.spinner{width:18px;height:18px;border:2px solid rgba(0,0,0,.3);border-top-color:var(--black);
+  border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
 </style>
 </head>
 <body>
@@ -326,30 +313,18 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
       </button>
     </div>
   </nav>
-
-  <!-- HERO WITH BG IMAGE -->
   <div class="home-hero-wrap">
     <div class="hero-bg"></div>
     <div class="hero-bg-overlay"></div>
     <div class="hero-glow"></div>
-
     <div class="home-hero">
       <div class="hero-rule">
-        <div class="hero-rule-line"></div>
-        <div class="hero-rule-dot"></div>
+        <div class="hero-rule-line"></div><div class="hero-rule-dot"></div>
         <div class="hero-rule-label">Pickup Only · No Delivery</div>
-        <div class="hero-rule-dot"></div>
-        <div class="hero-rule-line"></div>
+        <div class="hero-rule-dot"></div><div class="hero-rule-line"></div>
       </div>
-
-      <h1 class="hero-h1">
-        TAP.<br>
-        <span class="accent">EAT.</span>
-        <span class="serif">without the wait.</span>
-      </h1>
-
+      <h1 class="hero-h1">TAP.<br><span class="accent">EAT.</span><span class="serif">without the wait.</span></h1>
       <p class="hero-sub">Order ahead from the best local spots on campus. Fresh food, ready when you are — just tap and collect.</p>
-
       <div class="hero-chips">
         <span class="hero-chip hot">🔥 Trending now</span>
         <span class="hero-chip">🍔 Burgers</span>
@@ -357,21 +332,17 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
         <span class="hero-chip">🥤 Drinks</span>
         <span class="hero-chip">🍜 Noodles</span>
       </div>
-
       <div class="search-wrap">
         <div class="search-icon">⌕</div>
-        <input type="text" id="search-input" placeholder="Search restaurants or dishes…"
-          oninput="filterBiz()" aria-label="Search restaurants or dishes">
+        <input type="text" id="search-input" placeholder="Search restaurants or dishes…" oninput="filterBiz()" aria-label="Search">
         <button type="button" onclick="filterBiz()">SEARCH</button>
       </div>
     </div>
   </div>
-
   <div class="section-divider"></div>
-
   <div class="section-head">
     <h2>RESTAURANTS</h2>
-    <span id="open-count">2 OPEN NOW</span>
+    <span id="open-count">— OPEN NOW</span>
   </div>
   <div class="businesses" id="biz-list" aria-live="polite"></div>
 </div>
@@ -404,40 +375,58 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
       PICKUP ONLY — WE'LL ALERT YOU WHEN READY
     </div>
   </div>
-  <div class="cat-nav-wrap">
-    <div class="cat-nav" id="cat-nav"></div>
-  </div>
+  <div class="cat-nav-wrap"><div class="cat-nav" id="cat-nav"></div></div>
   <div class="menu-items" id="menu-items"></div>
 </div>
 
-<!-- CONFIRM -->
-<div id="confirm" class="screen">
+<!-- TRACK ORDER -->
+<div id="track" class="screen">
+  <div class="ready-banner" id="ready-banner">🔔 YOUR ORDER IS READY — COME COLLECT IT NOW!</div>
   <nav><div class="nav-logo">TAPDISH</div></nav>
-  <div class="confirm-screen">
-    <div class="confirm-inner">
-      <div class="confirm-ghost" id="confirm-ghost">#0000</div>
-      <div class="confirm-card">
-        <div class="confirm-top">
-          <div class="confirm-icon-wrap">🎯</div>
-          <div>
-            <div class="confirm-title">ORDER PLACED</div>
-            <div class="confirm-subtitle">Head over when it's ready.<br>We'll prep it fresh, just for you.</div>
-          </div>
-        </div>
-        <div class="confirm-rows" id="confirm-detail"></div>
-        <button type="button" class="home-btn" onclick="resetApp()">BACK TO HOME</button>
+  <div class="track-screen">
+    <div class="track-order-num" id="track-order-num">—</div>
+    <div class="track-biz" id="track-biz-name">—</div>
+
+    <!-- STATUS -->
+    <div id="track-status-badge" class="track-status-badge pending">⏳ Pending</div>
+    <div id="track-status-sub" class="track-status-sub">Your order has been received.</div>
+
+    <!-- STEPS -->
+    <div class="track-steps">
+      <div class="track-step active" id="step-1">
+        <div class="step-circle">1</div>
+        <div class="step-label">Received</div>
+      </div>
+      <div class="track-step" id="step-2">
+        <div class="step-circle">2</div>
+        <div class="step-label">Preparing</div>
+      </div>
+      <div class="track-step" id="step-3">
+        <div class="step-circle">3</div>
+        <div class="step-label">Ready</div>
       </div>
     </div>
+
+    <!-- ORDER DETAILS -->
+    <div class="track-card">
+      <div class="track-card-title">📋 Order Details</div>
+      <div class="track-row"><span class="t-label">Customer</span><span class="t-val" id="track-customer-name">—</span></div>
+      <div class="track-row"><span class="t-label">Phone</span><span class="t-val" id="track-phone">—</span></div>
+      <div class="track-row"><span class="t-label">Items</span><span class="t-val" style="font-size:12px;color:var(--grey)" id="track-items">—</span></div>
+      <div class="track-row"><span class="t-label">Pickup in</span><span class="t-val" id="track-wait">—</span></div>
+      <div class="track-row"><span class="t-label">Total</span><span class="t-val lime" id="track-total">—</span></div>
+    </div>
+
+    <button type="button" class="home-btn" onclick="resetApp()">BACK TO HOME</button>
   </div>
 </div>
 
 <!-- CART SHEET -->
-<div class="cart-overlay" id="cart-overlay" onclick="closeCartOutside(event)"
-  role="dialog" aria-modal="true" aria-labelledby="cart-title">
+<div class="cart-overlay" id="cart-overlay" onclick="closeCartOutside(event)" role="dialog" aria-modal="true">
   <div class="cart-sheet">
     <div class="sheet-drag"></div>
     <div class="sheet-head">
-      <div class="sheet-title" id="cart-title">YOUR ORDER</div>
+      <div class="sheet-title">YOUR ORDER</div>
       <button type="button" class="sheet-close" onclick="closeCart()">✕</button>
     </div>
     <div class="sheet-from" id="cart-biz-name">—</div>
@@ -449,6 +438,30 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
     <button type="button" class="order-btn" id="order-btn" onclick="placeOrder()" disabled>
       PLACE ORDER · PICKUP
     </button>
+  </div>
+</div>
+
+<!-- CUSTOMER DETAILS MODAL -->
+<div class="modal-overlay" id="customer-modal">
+  <div class="customer-modal">
+    <div class="cm-title">ALMOST THERE</div>
+    <div class="cm-sub">We need your details so the restaurant can call your order when it's ready.</div>
+    <div class="cm-field">
+      <label class="cm-label">Your Name</label>
+      <input type="text" class="cm-input" id="customer-name" placeholder="e.g. Onkarabile" maxlength="40">
+    </div>
+    <div class="cm-field">
+      <label class="cm-label">Phone Number</label>
+      <input type="tel" class="cm-input" id="customer-phone" placeholder="e.g. 073 123 4567" maxlength="15">
+    </div>
+    <div class="cm-error" id="customer-modal-error"></div>
+    <div class="cm-note">📱 Your phone number is used only to identify your order at pickup.</div>
+    <div class="cm-actions">
+      <button type="button" class="cm-confirm-btn" id="confirm-customer-btn" onclick="confirmCustomerDetails()">
+        CONFIRM &amp; PLACE ORDER
+      </button>
+      <button type="button" class="cm-cancel-btn" onclick="closeCustomerModal()">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -468,9 +481,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   </div>
 </div>
 
-<script type="module" src="firebase.config.js"></script>
-<script type="module" src="firebase.service.js"></script>
-<script type="module" src="firestore.structure.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>
