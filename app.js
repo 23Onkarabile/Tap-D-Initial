@@ -1,82 +1,53 @@
+
 // app.js — Customer-facing app
-  window.addEventListener("error", () => {
-    const biz = document.getElementById("biz-list");
-    if (biz && biz.innerHTML.includes("Loading")) {
-      biz.innerHTML =
-        '<div class="error">Failed to load app.</div>';
-    }
-  });
-
-
-import {
-  getBusinesses,
-  getBusiness,
-  getMenu,
-  placeOrder,
-  subscribeToOrder,
-  subscribeToBusinesses
-} from "./firebase.service.js";
-
-// ══════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════
-let businesses = []; // loaded from Firestore
-let cart = [];
-let activeBiz = null; // full business object
-let activeMenu = []; // fetched menu for activeBiz
-let unsubscribeBusinesses = null; // real-time listener cleanup
-let unsubscribeOrder = null; // real-time order tracker cleanup
-
-// ══════════════════════════════════════════════
-// ROUTING — /business/:slug
-// Reads the URL slug on load and opens the right menu.
-// Works for both: grub.com/ (home)
-// grub.com/business/paprika
-// ══════════════════════════════════════════════
-function resolveRoute() {
-  const path = window.location.pathname; // e.g. "/business/paprika"
-  const match = path.match(/\/business\/([^/]+)/);
-  return match ? match[1] : null; // returns "paprika" or null
-}
-
-function pushRoute(slug) {
-  const url = slug ? `/business/${slug}` : "/";
-  window.history.pushState({ slug }, "", url);
-}
-
-window.addEventListener("popstate", (e) => {
-  const slug = e.state?.slug || null;
-  if (slug) {
-    openMenu(slug, false); // false = don't push route again
-  } else {
-    goHome(false);
+window.addEventListener("error", () => {
+  const biz = document.getElementById("biz-list");
+  if (biz && biz.innerHTML.includes("Loading")) {
+    biz.innerHTML = '<div class="error">Failed to load app.</div>';
   }
 });
 
-// ══════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════
+import {
+  getBusiness, getMenu, placeOrder,
+  subscribeToOrder, subscribeToBusinesses
+} from "./firebase.service.js";
+
+// ══ STATE ══
+let businesses = [];
+let cart = [];
+let activeBiz = null;
+let activeMenu = [];
+let unsubscribeBusinesses = null;
+let unsubscribeOrder = null;
+let pendingOrderData = null; // holds order payload while customer modal is open
+
+// ══ ROUTING ══
+function resolveRoute() {
+  const match = window.location.pathname.match(/\/business\/([^/]+)/);
+  return match ? match[1] : null;
+}
+function pushRoute(slug) {
+  window.history.pushState({ slug }, "", slug ? `/business/${slug}` : "/");
+}
+window.addEventListener("popstate", (e) => {
+  const slug = e.state?.slug || null;
+  slug ? openMenu(slug, false) : goHome(false);
+});
+
+// ══ INIT ══
 async function init() {
   showLoading("biz-list");
-
-  // Subscribe to businesses with real-time updates (isOpen changes, etc.)
   unsubscribeBusinesses = subscribeToBusinesses((data) => {
     businesses = data;
     const openCount = data.filter(b => b.isOpen).length;
     document.getElementById('open-count').textContent = openCount + ' OPEN NOW';
     renderBizCards(businesses);
   });
-
-  // Handle direct URL navigation (e.g. user visits /business/paprika directly)
   const routeSlug = resolveRoute();
-  if (routeSlug) {
-    await openMenu(routeSlug, false);
-  }
+  if (routeSlug) await openMenu(routeSlug, false);
 }
 
-// ══════════════════════════════════════════════
-// HOME
-// ══════════════════════════════════════════════
+// ══ HOME ══
 function renderBizCards(list) {
   const el = document.getElementById("biz-list");
   if (!list.length) {
@@ -106,70 +77,49 @@ function renderBizCards(list) {
           <div class="biz-meta-item"><strong>${b.reviewCount}</strong>Reviews</div>
         </div>
       </div>
-    </div>
-  `).join("");
+    </div>`).join("");
 }
 
 function filterBiz() {
   const q = document.getElementById("search-input").value.toLowerCase().trim();
   if (!q) { renderBizCards(businesses); return; }
-  const filtered = businesses.filter(b =>
-    b.name.toLowerCase().includes(q) ||
-    b.tags.some(t => t.toLowerCase().includes(q))
-    // Note: searching menu items requires fetching all menus, skip for MVP
-  );
-  renderBizCards(filtered);
+  renderBizCards(businesses.filter(b =>
+    b.name.toLowerCase().includes(q) || b.tags.some(t => t.toLowerCase().includes(q))
+  ));
 }
 
-// ══════════════════════════════════════════════
-// MENU
-// ══════════════════════════════════════════════
+// ══ MENU ══
 async function openMenu(bizSlug, pushHistory = true) {
   showLoading("menu-items");
   showScreen("menu");
-
-  // Fetch business data
   activeBiz = await getBusiness(bizSlug);
   if (!activeBiz) {
     document.getElementById("menu-items").innerHTML = `<div class="error">Business not found.</div>`;
     return;
   }
-
-  // Update route
   if (pushHistory) pushRoute(bizSlug);
-
-  // Populate header
   document.getElementById("menu-banner").src = activeBiz.bannerUrl;
   document.getElementById("menu-biz-name").textContent = activeBiz.name;
   document.getElementById("menu-rating").textContent = activeBiz.rating;
   document.getElementById("menu-location").textContent = activeBiz.location;
-  document.getElementById("menu-time").textContent =
-    `${activeBiz.estimatedWaitMin}–${activeBiz.estimatedWaitMax} min`;
-
-  // Fetch menu
+  document.getElementById("menu-time").textContent = `${activeBiz.estimatedWaitMin}–${activeBiz.estimatedWaitMax} min`;
   activeMenu = await getMenu(bizSlug);
-
-  // Render category pills
-  document.getElementById("cat-nav").innerHTML =
-    activeMenu.map((sec, i) =>
-      `<button class="cat-pill ${i === 0 ? "active" : ""}" onclick="scrollToSec('${sec.category}',this)">${sec.category}</button>`
-    ).join("");
-
+  document.getElementById("cat-nav").innerHTML = activeMenu.map((sec, i) =>
+    `<button class="cat-pill ${i === 0 ? "active" : ""}" onclick="scrollToSec('${sec.category}',this)">${sec.category}</button>`
+  ).join("");
   renderMenuItems();
   window.scrollTo(0, 0);
 }
 
 function renderMenuItems() {
-  document.getElementById("menu-items").innerHTML =
-    activeMenu.map((sec, si) =>
-      `<div id="sec-${sec.category}">
-        <div class="menu-sec-title">${sec.category}</div>
-        ${sec.items.map((item, ii) => renderItemHTML(item, si * 10 + ii)).join("")}
-      </div>`
-    ).join("");
+  document.getElementById("menu-items").innerHTML = activeMenu.map((sec, si) =>
+    `<div id="sec-${sec.category}">
+      <div class="menu-sec-title">${sec.category}</div>
+      ${sec.items.map((item, ii) => renderItemHTML(item, si * 10 + ii)).join("")}
+    </div>`
+  ).join("");
 }
 
-// ── Unchanged from original ──
 function renderItemHTML(item, delay) {
   const inCart = cart.find(c => c.id === item.id);
   const qty = inCart ? inCart.qty : 0;
@@ -182,13 +132,13 @@ function renderItemHTML(item, delay) {
         <div class="item-footer">
           <div class="item-price">$${item.price.toFixed(2)}</div>
           ${qty === 0
-      ? `<button class="add-btn" onclick='addItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>+</button>`
-      : `<div class="item-qty">
+            ? `<button class="add-btn" onclick='addItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>+</button>`
+            : `<div class="item-qty">
                 <button class="qty-btn" onclick='changeQty("${item.id}",-1)'>−</button>
                 <span class="qty-num">${qty}</span>
                 <button class="qty-btn" onclick='changeQty("${item.id}",1)'>+</button>
               </div>`
-    }
+          }
         </div>
       </div>
     </div>`;
@@ -202,11 +152,7 @@ function refreshItem(itemId) {
   }
   if (!data) return;
   const el = document.getElementById(`item-${itemId}`);
-  if (el) {
-    const t = document.createElement("div");
-    t.innerHTML = renderItemHTML(data);
-    el.replaceWith(t.firstElementChild);
-  }
+  if (el) { const t = document.createElement("div"); t.innerHTML = renderItemHTML(data); el.replaceWith(t.firstElementChild); }
 }
 
 function scrollToSec(cat, btn) {
@@ -216,9 +162,7 @@ function scrollToSec(cat, btn) {
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-// ══════════════════════════════════════════════
-// CART — Unchanged from original
-// ══════════════════════════════════════════════
+// ══ CART ══
 function addItem(item) {
   const ex = cart.find(c => c.id === item.id);
   if (ex) ex.qty++;
@@ -240,6 +184,7 @@ function updateCartCount() {
   const n = cart.reduce((s, c) => s + c.qty, 0);
   document.getElementById("cart-count").textContent = n;
   document.getElementById("cart-count-2").textContent = n;
+  document.getElementById("order-btn").disabled = n === 0;
 }
 
 function openCart() {
@@ -247,7 +192,6 @@ function openCart() {
   const totalEl = document.getElementById("cart-total");
   const bizEl = document.getElementById("cart-biz-name");
   const orderBtn = document.getElementById("order-btn");
-
   if (cart.length === 0) {
     listEl.innerHTML = `<div class="empty-cart"><span class="emoji">🍽</span><p>Your order is empty.<br>Add something good.</p></div>`;
     totalEl.textContent = "$0.00";
@@ -263,8 +207,7 @@ function openCart() {
         </div>
         <button class="remove-btn" onclick='removeFromCart("${c.id}")'>✕</button>
       </div>`).join("");
-    const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
-    totalEl.textContent = `$${total.toFixed(2)}`;
+    totalEl.textContent = `$${cart.reduce((s, c) => s + c.price * c.qty, 0).toFixed(2)}`;
     orderBtn.disabled = false;
   }
   document.getElementById("cart-overlay").classList.add("open");
@@ -284,86 +227,169 @@ function closeCartOutside(e) {
 function closeCart() {
   document.getElementById("cart-overlay").classList.remove("open");
 }
-// ══════════════════════════════════════════════
-// ORDER PLACEMENT — Now writes to Firestore
-// ══════════════════════════════════════════════
-async function submitOrder() {
-  if (!cart.length) return;
 
-  const orderBtn = document.getElementById("order-btn");
-  orderBtn.disabled = true;
-  orderBtn.textContent = "Placing order…";
-
+// ══ CUSTOMER DETAILS MODAL ══
+function openCustomerModal() {
+  // Build order payload first, store it
   const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
   const items = cart.map(c => ({
-    itemId: c.id,
-    name: c.name,
-    price: c.price,
-    qty: c.qty,
-    subtotal: +(c.price * c.qty).toFixed(2)
+    itemId: c.id, name: c.name, price: c.price,
+    qty: c.qty, subtotal: +(c.price * c.qty).toFixed(2)
   }));
+  pendingOrderData = {
+    businessId: activeBiz.id,
+    businessName: activeBiz.name,
+    items, total: +total.toFixed(2),
+    estimatedWait: `${activeBiz.estimatedWaitMin}–${activeBiz.estimatedWaitMax} min`,
+  };
+  // Clear fields
+  document.getElementById("customer-name").value = "";
+  document.getElementById("customer-phone").value = "";
+  document.getElementById("customer-modal-error").textContent = "";
+  document.getElementById("customer-modal").classList.add("open");
+}
+
+window.closeCustomerModal = function() {
+  document.getElementById("customer-modal").classList.remove("open");
+  // re-enable place order btn
+  const btn = document.getElementById("order-btn");
+  btn.disabled = false;
+  btn.textContent = "PLACE ORDER · PICKUP";
+}
+
+window.confirmCustomerDetails = async function() {
+  const name  = document.getElementById("customer-name").value.trim();
+  const phone = document.getElementById("customer-phone").value.trim();
+  const errEl = document.getElementById("customer-modal-error");
+
+  if (!name)  { errEl.textContent = "Please enter your name."; return; }
+  if (!phone) { errEl.textContent = "Please enter your phone number."; return; }
+  if (!/^[0-9+\s]{7,15}$/.test(phone)) { errEl.textContent = "Please enter a valid phone number."; return; }
+
+  errEl.textContent = "";
+  document.getElementById("confirm-customer-btn").disabled = true;
+  document.getElementById("confirm-customer-btn").textContent = "Placing order…";
 
   try {
     const order = await placeOrder({
-      businessId: activeBiz.id,
-      businessName: activeBiz.name,
-      items,
-      total: +total.toFixed(2),
-      estimatedWait: `${activeBiz.estimatedWaitMin}–${activeBiz.estimatedWaitMax} min`,
-      customerId: null, // replace with auth.currentUser?.uid for logged-in users
-      customerName: "Guest"
+      ...pendingOrderData,
+      customerName: name,
+      customerPhone: phone,
+      customerId: null
     });
 
-    // Show confirmation screen
-    const ghostEl = document.getElementById("confirm-ghost");
-if(ghostEl) ghostEl.textContent = `#${order.orderNumber}`;
-    document.getElementById("confirm-detail").innerHTML = `
-      <div class="confirm-row"><span class="label">Order</span><span class="val">${order.orderNumber}</span></div>
-      <div class="confirm-row"><span class="label">From</span><span class="val">${activeBiz.name}</span></div>
-      <div class="confirm-row"><span class="label">Items</span><span class="val" style="font-size:12px;color:#888;">${items.map(i => `${i.qty}× ${i.name}`).join(" · ")}</span></div>
-      <div class="confirm-row"><span class="label">Pickup in</span><span class="val">${order.estimatedWait}</span></div>
-      <div class="confirm-row"><span class="label">Total</span><span class="val lime">$${total.toFixed(2)}</span></div>
-      <div class="confirm-row" id="order-status-row"><span class="label">Status</span><span class="val status-badge pending">⏳ Pending</span></div>
-    `;
-
+    document.getElementById("customer-modal").classList.remove("open");
     document.getElementById("cart-overlay").classList.remove("open");
     cart = [];
     updateCartCount();
-    showScreen("confirm");
-    window.scrollTo(0, 0);
 
-    // Subscribe to real-time order status updates
+    // Show track screen
+    showTrackScreen(order);
+
+    // Subscribe to real-time status
     if (unsubscribeOrder) unsubscribeOrder();
     unsubscribeOrder = subscribeToOrder(order.id, (updated) => {
-      updateStatusBadge(updated.status);
+      updateTrackStatus(updated.status);
     });
 
-  } catch (err) {
-    console.error("Order failed:", err);
-    orderBtn.disabled = false;
-    orderBtn.textContent = "Place Order";
-    alert("Error: " + err.message);
+  } catch(err) {
+    errEl.textContent = "Error: " + err.message;
+    document.getElementById("confirm-customer-btn").disabled = false;
+    document.getElementById("confirm-customer-btn").textContent = "CONFIRM & PLACE ORDER";
   }
 }
 
-const STATUS_LABELS = {
-  pending: "⏳ Pending",
-  accepted: "✅ Accepted",
-  ready: "🔔 Ready for Pickup",
-  completed: "🎉 Completed",
-  rejected: "❌ Rejected"
-};
+// ══ TRACK ORDER SCREEN ══
+function showTrackScreen(order) {
+  document.getElementById("track-order-num").textContent = order.orderNumber;
+  document.getElementById("track-biz-name").textContent = order.businessName;
+  document.getElementById("track-customer-name").textContent = order.customerName || "—";
+  document.getElementById("track-phone").textContent = order.customerPhone || "—";
+  document.getElementById("track-wait").textContent = order.estimatedWait || "—";
+  document.getElementById("track-total").textContent = `$${(order.total||0).toFixed(2)}`;
+  document.getElementById("track-items").textContent =
+    (order.items||[]).map(i => `${i.qty}× ${i.name}`).join(" · ");
 
-function updateStatusBadge(status) {
-  const badge = document.querySelector(".status-badge");
-  if (!badge) return;
-  badge.textContent = STATUS_LABELS[status] || status;
-  badge.className = `val status-badge ${status}`;
+  updateTrackStatus(order.status || "pending");
+  showScreen("track");
+  window.scrollTo(0, 0);
 }
 
-// ══════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════
+const STATUS_CONFIG = {
+  pending:   { label: "⏳ Pending",            sub: "Your order has been received. Hang tight!",          class: "pending",   step: 1 },
+  preparing: { label: "👨‍🍳 Being Prepared",    sub: "The kitchen is working on your order right now.",   class: "preparing", step: 2 },
+  ready:     { label: "🔔 Ready for Pickup!",  sub: "Your order is ready — come collect it now!",         class: "ready",     step: 3 },
+  completed: { label: "🎉 Collected",           sub: "Thanks for ordering with TapDish. Enjoy your meal!", class: "completed", step: 4 },
+  rejected:  { label: "❌ Rejected",            sub: "Sorry, your order could not be fulfilled.",          class: "rejected",  step: 0 },
+};
+
+function updateTrackStatus(status) {
+  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
+  const badgeEl = document.getElementById("track-status-badge");
+  const subEl   = document.getElementById("track-status-sub");
+
+  badgeEl.textContent = cfg.label;
+  badgeEl.className   = `track-status-badge ${cfg.class}`;
+  subEl.textContent   = cfg.sub;
+
+  // Update step indicators
+  [1,2,3].forEach(step => {
+    const el = document.getElementById(`step-${step}`);
+    if (!el) return;
+    el.classList.remove("active", "done");
+    if (cfg.step === step) el.classList.add("active");
+    if (cfg.step > step)  el.classList.add("done");
+  });
+
+  // READY alert — flash + sound
+  if (status === "ready") {
+    triggerReadyAlert();
+  }
+}
+
+function triggerReadyAlert() {
+  // Flash the track screen
+  const screen = document.getElementById("track");
+  screen.classList.add("ready-flash");
+  setTimeout(() => screen.classList.remove("ready-flash"), 2000);
+
+  // Play chime sound using Web Audio API
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [523, 659, 784, 1047]; // C5 E5 G5 C6
+    notes.forEach((freq, i) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.4, ctx.currentTime + i * 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.4);
+      osc.start(ctx.currentTime + i * 0.18);
+      osc.stop(ctx.currentTime + i * 0.18 + 0.4);
+    });
+  } catch(e) { console.log("Audio not available:", e); }
+
+  // Show ready banner
+  const banner = document.getElementById("ready-banner");
+  if (banner) {
+    banner.classList.add("show");
+    setTimeout(() => banner.classList.remove("show"), 6000);
+  }
+}
+
+// ══ ORDER PLACEMENT (called from cart PLACE ORDER button) ══
+async function submitOrder() {
+  if (!cart.length) return;
+  const orderBtn = document.getElementById("order-btn");
+  orderBtn.disabled = true;
+  orderBtn.textContent = "Almost there…";
+  closeCart();
+  openCustomerModal();
+}
+
+// ══ HELPERS ══
 function showLoading(containerId) {
   const el = document.getElementById(containerId);
   if (el) el.innerHTML = `<div class="loading-state">Loading…</div>`;
@@ -382,18 +408,13 @@ function goHome(pushHistory = true) {
 }
 
 function resetApp() {
-  activeBiz = null;
-  activeMenu = [];
-  cart = [];
+  activeBiz = null; activeMenu = []; cart = [];
   updateCartCount();
   document.getElementById("search-input").value = "";
   goHome();
 }
 
-// ══════════════════════════════════════════════
-// EXPOSE to HTML onclick attributes
-// (Only needed because you're not using a framework)
-// ══════════════════════════════════════════════
+// ══ EXPOSE ══
 window.openMenu = openMenu;
 window.filterBiz = filterBiz;
 window.openCart = openCart;
@@ -403,11 +424,8 @@ window.removeFromCart = removeFromCart;
 window.addItem = addItem;
 window.changeQty = changeQty;
 window.scrollToSec = scrollToSec;
-window.placeOrder = submitOrder; // HTML calls placeOrder(), maps to submitOrder()
+window.placeOrder = submitOrder;
 window.goHome = goHome;
 window.resetApp = resetApp;
 
-// ══════════════════════════════════════════════
-// START
-// ══════════════════════════════════════════════
 init();
