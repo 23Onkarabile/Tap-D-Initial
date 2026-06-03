@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GRUB Vendor Dashboard</title>
+<title>TapDish Vendor Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -27,9 +27,11 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 @keyframes loadFill{from{width:0}to{width:100%}}
+
+/* AUTH */
 .auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
-  background:radial-gradient(ellipse at 20% 50%, rgba(200,241,53,0.05) 0%, transparent 60%),
-             radial-gradient(ellipse at 80% 20%, rgba(200,241,53,0.03) 0%, transparent 50%)}
+  background:radial-gradient(ellipse at 20% 50%,rgba(200,241,53,0.05) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 20%,rgba(200,241,53,0.03) 0%,transparent 50%)}
 .auth-card{width:100%;max-width:440px;animation:riseIn .6s cubic-bezier(.22,1,.36,1)}
 .auth-logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;color:var(--lime);line-height:1;margin-bottom:4px}
 .auth-tagline{font-family:'Instrument Serif',serif;font-style:italic;color:var(--grey);font-size:16px;margin-bottom:40px}
@@ -54,7 +56,12 @@ select.field-input option{background:var(--dark)}
 .auth-error{background:var(--red-dim);border:1px solid rgba(255,77,77,.3);border-radius:8px;
   padding:12px 14px;font-size:13px;color:var(--red);margin-bottom:16px;display:none}
 .auth-error.show{display:block}
+.forgot-btn{background:none;border:none;color:var(--grey);font-family:'Syne',sans-serif;
+  font-size:12px;cursor:pointer;padding:8px 0 0;text-decoration:underline;transition:color .2s}
+.forgot-btn:hover{color:var(--lime)}
 .spinner{width:18px;height:18px;border:2px solid rgba(0,0,0,.3);border-top-color:var(--black);border-radius:50%;animation:spin .7s linear infinite}
+
+/* DASHBOARD NAV */
 .dash-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:64px;
   display:flex;align-items:center;justify-content:space-between;padding:0 28px;
   background:rgba(10,10,10,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
@@ -73,12 +80,15 @@ select.field-input option{background:var(--dark)}
   color:var(--grey);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
   letter-spacing:.5px;cursor:pointer;transition:all .2s;text-transform:uppercase}
 .logout-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* LAYOUT */
 .dash-body{padding-top:64px;display:grid;grid-template-columns:220px 1fr;min-height:100vh}
-.dash-sidebar{background:var(--dark);border-right:1px solid var(--border);padding:28px 0;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto}
+.dash-sidebar{background:var(--dark);border-right:1px solid var(--border);padding:28px 0;
+  position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto}
 .sidebar-section{margin-bottom:8px}
 .sidebar-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--grey);padding:0 20px 8px}
-.sidebar-item{display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;transition:all .15s;
-  color:var(--grey);font-size:14px;font-weight:600;border-left:2px solid transparent}
+.sidebar-item{display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;
+  transition:all .15s;color:var(--grey);font-size:14px;font-weight:600;border-left:2px solid transparent}
 .sidebar-item:hover{color:var(--white);background:var(--glass)}
 .sidebar-item.active{color:var(--lime);border-left-color:var(--lime);background:var(--lime-dim)}
 .sidebar-item .icon{font-size:16px;flex-shrink:0}
@@ -87,6 +97,8 @@ select.field-input option{background:var(--dark)}
 .dash-main{padding:28px;overflow-y:auto}
 .dash-tab{display:none}
 .dash-tab.active{display:block;animation:fadeIn .3s ease}
+
+/* STATS */
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;animation:riseIn .5s cubic-bezier(.22,1,.36,1) both}
 .stat-card:nth-child(2){animation-delay:.08s}
@@ -98,6 +110,8 @@ select.field-input option{background:var(--dark)}
 .stat-val.amber{color:var(--amber)}
 .stat-val.red{color:var(--red)}
 .stat-sub{font-size:12px;color:var(--grey);margin-top:4px}
+
+/* SECTION HEAD */
 .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .sec-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px}
 .sec-meta{font-size:12px;color:var(--grey);letter-spacing:.5px}
@@ -105,8 +119,11 @@ select.field-input option{background:var(--dark)}
   border:1px solid rgba(255,77,77,.3);border-radius:4px;padding:4px 10px;
   font-size:11px;font-weight:700;letter-spacing:1px;color:var(--red);text-transform:uppercase}
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1s infinite}
+
+/* ORDER CARDS */
 .orders-grid{display:flex;flex-direction:column;gap:12px}
-.order-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .2s;animation:slideIn .4s cubic-bezier(.22,1,.36,1) both}
+.order-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;transition:border-color .2s;animation:slideIn .4s cubic-bezier(.22,1,.36,1) both}
 .order-card:hover{border-color:var(--lime-border)}
 .order-card.status-pending{border-left:3px solid var(--red)}
 .order-card.status-preparing{border-left:3px solid var(--amber)}
@@ -139,10 +156,45 @@ select.field-input option{background:var(--dark)}
 .btn-ready:hover{background:var(--lime);color:var(--black)}
 .btn-complete{background:rgba(100,100,100,.1);color:#888;border:1px solid #333}
 .btn-complete:hover{background:#333;color:var(--white)}
-.empty-state{text-align:center;padding:64px 24px;color:var(--grey)}
-.empty-icon{font-size:48px;margin-bottom:16px;display:block;opacity:.5}
-.empty-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--white);margin-bottom:8px}
-.empty-sub{font-size:14px;line-height:1.6}
+
+/* KANBAN */
+.kanban-board{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.kanban-col{background:var(--dark);border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;display:flex;flex-direction:column}
+.kanban-col-head{padding:16px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between}
+.kanban-col-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px}
+.kanban-col-count{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px}
+.kanban-col.col-pending .kanban-col-title{color:var(--red)}
+.kanban-col.col-pending .kanban-col-count{color:var(--red)}
+.kanban-col.col-preparing .kanban-col-title{color:var(--amber)}
+.kanban-col.col-preparing .kanban-col-count{color:var(--amber)}
+.kanban-col.col-ready .kanban-col-title{color:var(--lime)}
+.kanban-col.col-ready .kanban-col-count{color:var(--lime)}
+.kanban-cards{padding:12px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:120px}
+.kanban-empty{text-align:center;padding:28px 0;color:var(--grey);font-size:13px}
+.kanban-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:14px;transition:border-color .2s;animation:riseIn .3s cubic-bezier(.22,1,.36,1)}
+.kanban-card:hover{border-color:var(--lime-border)}
+.kanban-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.kanban-order-num{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--white)}
+.kanban-time{font-size:11px;color:var(--grey)}
+.kanban-customer{font-size:13px;font-weight:600;color:var(--white);margin-bottom:4px}
+.kanban-phone{font-size:11px;color:var(--grey);font-weight:400;margin-left:6px}
+.kanban-items{font-size:11px;color:var(--grey);line-height:1.5;margin-bottom:12px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kanban-card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.kanban-total{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--lime)}
+.kanban-btn{border:none;border-radius:6px;padding:7px 12px;font-family:'Syne',sans-serif;
+  font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.kanban-btn-pending{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,.3)}
+.kanban-btn-pending:hover{background:var(--amber);color:var(--black)}
+.kanban-btn-preparing{background:var(--lime-dim);color:var(--lime);border:1px solid var(--lime-border)}
+.kanban-btn-preparing:hover{background:var(--lime);color:var(--black)}
+.kanban-btn-ready{background:rgba(100,100,100,.1);color:#888;border:1px solid #333}
+.kanban-btn-ready:hover{background:#333;color:var(--white)}
+
+/* HISTORY */
 .history-filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
 .filter-pill{background:transparent;border:1px solid var(--border);border-radius:4px;
   padding:7px 14px;font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--grey);
@@ -157,6 +209,14 @@ select.field-input option{background:var(--dark)}
 .history-row.header:hover{background:var(--black)}
 .h-order{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px}
 .h-total{color:var(--lime);font-weight:700}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:64px 24px;color:var(--grey)}
+.empty-icon{font-size:48px;margin-bottom:16px;display:block;opacity:.5}
+.empty-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--white);margin-bottom:8px}
+.empty-sub{font-size:14px;line-height:1.6}
+
+/* LOADING + TOAST */
 .loading-overlay{position:fixed;inset:0;background:var(--black);z-index:999;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
 .loading-logo{font-family:'Bebas Neue',sans-serif;font-size:60px;letter-spacing:6px;color:var(--lime)}
@@ -168,6 +228,11 @@ select.field-input option{background:var(--dark)}
   animation:slideIn .3s ease;box-shadow:0 8px 32px rgba(0,0,0,.4)}
 .toast.show{display:flex;align-items:center;gap:10px}
 .toast.error{border-color:rgba(255,77,77,.3);color:var(--red)}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .kanban-board{grid-template-columns:1fr}
+}
 @media(max-width:768px){
   .dash-body{grid-template-columns:1fr}
   .dash-sidebar{display:none}
@@ -179,6 +244,7 @@ select.field-input option{background:var(--dark)}
 </head>
 <body>
 
+<!-- LOADING -->
 <div class="loading-overlay" id="loading">
   <div class="loading-logo">TAPDISH</div>
   <div class="loading-bar"><div class="loading-fill"></div></div>
@@ -186,6 +252,7 @@ select.field-input option{background:var(--dark)}
 
 <div class="toast" id="toast"></div>
 
+<!-- AUTH -->
 <div id="auth" class="screen">
   <div class="auth-screen">
     <div class="auth-card">
@@ -209,6 +276,7 @@ select.field-input option{background:var(--dark)}
           <button type="button" class="auth-btn" id="login-btn" onclick="handleLogin()">
             <span>LOGIN</span>
           </button>
+          <button type="button" class="forgot-btn" onclick="handleForgotPassword()">Forgot password?</button>
         </div>
         <div id="signup-form" style="display:none">
           <div class="field-group">
@@ -241,6 +309,7 @@ select.field-input option{background:var(--dark)}
   </div>
 </div>
 
+<!-- DASHBOARD -->
 <div id="dashboard" class="screen">
   <nav class="dash-nav">
     <div class="dash-nav-left">
@@ -255,7 +324,9 @@ select.field-input option{background:var(--dark)}
       <button type="button" class="logout-btn" onclick="handleLogout()">Logout</button>
     </div>
   </nav>
+
   <div class="dash-body">
+    <!-- SIDEBAR -->
     <div class="dash-sidebar">
       <div class="sidebar-section">
         <div class="sidebar-label">Dashboard</div>
@@ -263,12 +334,19 @@ select.field-input option{background:var(--dark)}
           <span class="icon">📋</span> Live Orders
           <span class="sidebar-badge" id="pending-badge" style="display:none">0</span>
         </div>
+        <div class="sidebar-item" onclick="switchTab('kanban')" id="nav-kanban">
+          <span class="icon">🗂</span> Kanban Board
+        </div>
         <div class="sidebar-item" onclick="switchTab('history')" id="nav-history">
           <span class="icon">🕐</span> Order History
         </div>
       </div>
     </div>
+
+    <!-- MAIN -->
     <div class="dash-main">
+
+      <!-- STATS -->
       <div class="stats-row">
         <div class="stat-card">
           <div class="stat-label">Pending</div>
@@ -291,6 +369,8 @@ select.field-input option{background:var(--dark)}
           <div class="stat-sub">Completed orders</div>
         </div>
       </div>
+
+      <!-- LIVE ORDERS TAB -->
       <div class="dash-tab active" id="tab-orders">
         <div class="sec-head">
           <div class="sec-title">LIVE ORDERS</div>
@@ -304,6 +384,42 @@ select.field-input option{background:var(--dark)}
           </div>
         </div>
       </div>
+
+      <!-- KANBAN TAB -->
+      <div class="dash-tab" id="tab-kanban">
+        <div class="sec-head">
+          <div class="sec-title">KANBAN BOARD</div>
+          <div class="sec-meta">Drag orders through the flow</div>
+        </div>
+        <div class="kanban-board">
+          <!-- PENDING COLUMN -->
+          <div class="kanban-col col-pending">
+            <div class="kanban-col-head">
+              <div class="kanban-col-title">🔴 PENDING</div>
+              <div class="kanban-col-count" id="kanban-count-pending">0</div>
+            </div>
+            <div class="kanban-cards" id="kanban-pending"></div>
+          </div>
+          <!-- PREPARING COLUMN -->
+          <div class="kanban-col col-preparing">
+            <div class="kanban-col-head">
+              <div class="kanban-col-title">🟡 PREPARING</div>
+              <div class="kanban-col-count" id="kanban-count-preparing">0</div>
+            </div>
+            <div class="kanban-cards" id="kanban-preparing"></div>
+          </div>
+          <!-- READY COLUMN -->
+          <div class="kanban-col col-ready">
+            <div class="kanban-col-head">
+              <div class="kanban-col-title">🟢 READY</div>
+              <div class="kanban-col-count" id="kanban-count-ready">0</div>
+            </div>
+            <div class="kanban-cards" id="kanban-ready"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY TAB -->
       <div class="dash-tab" id="tab-history">
         <div class="sec-head">
           <div class="sec-title">ORDER HISTORY</div>
@@ -323,6 +439,7 @@ select.field-input option{background:var(--dark)}
           <div id="history-body"></div>
         </div>
       </div>
+
     </div>
   </div>
 </div>
@@ -330,3 +447,4 @@ select.field-input option{background:var(--dark)}
 <script type="module" src="dashboard.js"></script>
 </body>
 </html>
+
