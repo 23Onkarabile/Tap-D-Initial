@@ -298,6 +298,18 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .error{color:var(--red);padding:20px;text-align:center;font-size:14px}
 .spinner{width:18px;height:18px;border:2px solid rgba(0,0,0,.3);border-top-color:var(--black);
   border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+  /* FLOATING TRACK BUTTON */
+.track-float{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:10px;
+  background:var(--lime);color:var(--black);
+  border:none;border-radius:50px;padding:14px 24px;
+  cursor:pointer;z-index:250;
+  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;
+  box-shadow:0 8px 32px rgba(200,241,53,0.3);
+  animation:riseIn .4s cubic-bezier(.22,1,.36,1)}
+.track-float:hover{background:#d9ff40;transform:translateX(-50%) translateY(-2px)}
+.track-float-dot{width:8px;height:8px;border-radius:50%;background:var(--black);animation:pulse 1.5s infinite}
+.track-float-num{font-size:14px;opacity:.7}
 </style>
 </head>
 <body>
@@ -480,7 +492,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
     </div>
   </div>
 </div>
-
+<!-- FLOATING TRACK BUTTON -->
+<div class="track-float" id="track-float" onclick="showTrackFromFloat()" style="display:none">
+  <div class="track-float-dot"></div>
+  <span>TRACK MY ORDER</span>
+  <span class="track-float-num" id="track-float-num"></span>
+</div>
 <script type="module" src="app.js"></script>
 </body>
 </html>
