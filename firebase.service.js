@@ -1,84 +1,47 @@
 // firebase.service.js
-// All Firestore read/write operations live here.
 import { db, auth } from "./firebase.config.js";
 
 import {
-  collection,
-  collectionGroup,
-  doc,
-  getDoc,
-  getDocs,
-  addDoc,
-  setDoc,
-  updateDoc,
-  onSnapshot,
-  query,
-  where,
-  orderBy,
-  Timestamp,
-  serverTimestamp
+  collection, doc, getDoc, getDocs, addDoc, setDoc,
+  updateDoc, onSnapshot, query, where, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  RecaptchaVerifier,
+  signInWithPhoneNumber
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-
+// ─────────────────────────────────────────────
 // BUSINESSES
-
-/**
- * Fetch all businesses (for home screen listing).
- * @returns {Promise<Array>}
- */
+// ─────────────────────────────────────────────
 export async function getBusinesses() {
   const snap = await getDocs(collection(db, "businesses"));
   return snap.docs.map(d => ({ ...d.data(), id: d.id }));
 }
 
-/**
- * Fetch a single business by slug/id.
- * @param {string} businessId
- * @returns {Promise<Object|null>}
- */
 export async function getBusiness(businessId) {
   const snap = await getDoc(doc(db, "businesses", businessId));
   return snap.exists() ? { ...snap.data(), id: snap.id } : null;
 }
 
-/**
- * Real-time listener on all businesses (e.g. isOpen status updates).
- * @param {Function} callback  — called with updated businesses array
- * @returns unsubscribe function
- */
 export function subscribeToBusinesses(callback) {
   return onSnapshot(collection(db, "businesses"), snap => {
-    const businesses = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-    callback(businesses);
+    callback(snap.docs.map(d => ({ ...d.data(), id: d.id })));
   });
 }
 
 // ─────────────────────────────────────────────
 // MENUS
 // ─────────────────────────────────────────────
-
-/**
- * Fetch full menu for a business.
- * Returns array shaped like the original static data:
- *   [{ category: "Starters", items: [...] }, ...]
- * @param {string} businessId
- * @returns {Promise<Array>}
- */
 export async function getMenu(businessId) {
   const catSnap = await getDocs(
-    query(
-      collection(db, "menus", businessId, "categories"),
-      orderBy("sortOrder")
-    )
+    query(collection(db, "menus", businessId, "categories"), orderBy("sortOrder"))
   );
-
   const sections = await Promise.all(
     catSnap.docs.map(async catDoc => {
       const itemSnap = await getDocs(
@@ -89,25 +52,16 @@ export async function getMenu(businessId) {
       );
       return {
         category: catDoc.data().name,
-        items: itemSnap.docs
-          .map(d => ({ ...d.data(), id: d.id }))
-          .filter(item => item.isAvailable)
+        items: itemSnap.docs.map(d => ({ ...d.data(), id: d.id })).filter(i => i.isAvailable)
       };
     })
   );
-
   return sections;
 }
 
 // ─────────────────────────────────────────────
-// ORDERS  —  Customer side
+// ORDERS — Customer side
 // ─────────────────────────────────────────────
-
-/**
- * Place a new order. Returns the created order document.
- * @param {Object} orderData
- * @returns {Promise<Object>}
- */
 export async function placeOrder(orderData) {
   const orderNum = `GRB-${Math.floor(Math.random() * 9000) + 1000}`;
   const payload = {
@@ -121,29 +75,28 @@ export async function placeOrder(orderData) {
   return { id: ref.id, ...payload, orderNumber: orderNum };
 }
 
-/**
- * Real-time listener for a single order (customer order tracking).
- * @param {string} orderId
- * @param {Function} callback
- * @returns unsubscribe function
- */
 export function subscribeToOrder(orderId, callback) {
   return onSnapshot(doc(db, "orders", orderId), snap => {
     if (snap.exists()) callback({ id: snap.id, ...snap.data() });
   });
 }
 
-// ─────────────────────────────────────────────
-// ORDERS  —  Vendor dashboard side
-// ─────────────────────────────────────────────
-
 /**
- * Real-time listener for all orders belonging to a business.
- * Vendor ONLY sees their own orders (filtered by businessId).
- * @param {string} businessId
- * @param {Function} callback
- * @returns unsubscribe function
+ * Get all orders for a customer by their UID.
  */
+export async function getOrderHistory(customerId) {
+  const q = query(
+    collection(db, "orders"),
+    where("customerId", "==", customerId),
+    orderBy("createdAt", "desc")
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// ─────────────────────────────────────────────
+// ORDERS — Vendor dashboard side
+// ─────────────────────────────────────────────
 export function subscribeToVendorOrders(businessId, callback) {
   const q = query(
     collection(db, "orders"),
@@ -151,17 +104,10 @@ export function subscribeToVendorOrders(businessId, callback) {
     orderBy("createdAt", "desc")
   );
   return onSnapshot(q, snap => {
-    const orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    callback(orders);
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
   });
 }
 
-/**
- * Update order status (vendor action).
- * Valid statuses: "pending" | "accepted" | "ready" | "completed" | "rejected"
- * @param {string} orderId
- * @param {string} status
- */
 export async function updateOrderStatus(orderId, status) {
   await updateDoc(doc(db, "orders", orderId), {
     status,
@@ -169,59 +115,191 @@ export async function updateOrderStatus(orderId, status) {
   });
 }
 
-// AUTH
+// ─────────────────────────────────────────────
+// CUSTOMER AUTH
+// ─────────────────────────────────────────────
+
 /**
- * Sign up a new user and create their profile doc.
- * @param {string} email
- * @param {string} password
- * @param {string} name
- * @param {string} role  — "customer" | "vendor"
- * @returns {Promise<Object>}
+ * Sign up customer with email + password.
+ * Creates a user doc in /users/{uid} with name, phone, email, role.
  */
-export async function signUp(email, password, name, role = "customer", businessId = null) {
+export async function customerSignUp(email, password, name, phone) {
   const { user } = await createUserWithEmailAndPassword(auth, email, password);
   await setDoc(doc(db, "users", user.uid), {
     name,
+    phone,
     email,
-    role,
-    ...(businessId && { businessId }),
+    role: "customer",
     createdAt: serverTimestamp()
   });
   return user;
 }
 
 /**
- * Sign in existing user.
- * @param {string} email
- * @param {string} password
- * @returns {Promise<Object>}
+ * Sign in customer with email + password.
  */
-export async function signIn(email, password) {
+export async function customerSignIn(email, password) {
   const { user } = await signInWithEmailAndPassword(auth, email, password);
   return user;
 }
 
 /**
- * Sign out current user.
+ * Sign out current customer.
  */
-export async function logOut() {
+export async function customerSignOut() {
   await signOut(auth);
 }
 
 /**
- * Listen to auth state changes (logged in / logged out).
- * Call this once when your app loads.
- * @param {Function} callback  — called with user object or null
- * @returns unsubscribe function
+ * Send password reset email.
  */
+export async function resetPassword(email) {
+  await sendPasswordResetEmail(auth, email);
+}
+
+/**
+ * Listen to customer auth state changes.
+ */
+export function onCustomerAuthChange(callback) {
+  return onAuthStateChanged(auth, callback);
+}
+
+/**
+ * Get customer profile from Firestore.
+ */
+export async function getCustomerProfile(uid) {
+  const snap = await getDoc(doc(db, "users", uid));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+
+// ─────────────────────────────────────────────
+// PHONE AUTH (OTP)
+// ─────────────────────────────────────────────
+
+/**
+ * Set up invisible reCAPTCHA and send OTP to phone number.
+ * containerId = id of a div in the DOM for reCAPTCHA to mount to.
+ */
+export async function sendOTP(phoneNumber, containerId) {
+  const recaptcha = new RecaptchaVerifier(auth, containerId, { size: 'invisible' });
+  const confirmation = await signInWithPhoneNumber(auth, phoneNumber, recaptcha);
+  return confirmation; // call confirmation.confirm(otp) to verify
+}
+
+/**
+ * After OTP verified, save profile if new user.
+ */
+export async function savePhoneProfile(uid, name, phone, email = null) {
+  const existing = await getDoc(doc(db, "users", uid));
+  if (!existing.exists()) {
+    await setDoc(doc(db, "users", uid), {
+      name,
+      phone,
+      email: email || null,
+      role: "customer",
+      createdAt: serverTimestamp()
+    });
+  }
+}
+
+// ─────────────────────────────────────────────
+// CART PERSISTENCE
+// ─────────────────────────────────────────────
+
+/**
+ * Save cart to Firestore under /carts/{uid}
+ */
+export async function saveCart(uid, cart, bizId, bizName) {
+  await setDoc(doc(db, "carts", uid), {
+    cart,
+    bizId: bizId || null,
+    bizName: bizName || null,
+    updatedAt: serverTimestamp()
+  });
+}
+
+/**
+ * Load saved cart from Firestore.
+ */
+export async function loadCart(uid) {
+  const snap = await getDoc(doc(db, "carts", uid));
+  return snap.exists() ? snap.data() : null;
+}
+
+/**
+ * Clear cart from Firestore.
+ */
+export async function clearCart(uid) {
+  await setDoc(doc(db, "carts", uid), {
+    cart: [],
+    bizId: null,
+    bizName: null,
+    updatedAt: serverTimestamp()
+  });
+}
+
+// ─────────────────────────────────────────────
+// ACTIVE ORDER PERSISTENCE
+// ─────────────────────────────────────────────
+
+/**
+ * Save active order ID to customer profile so it
+ * can be restored after refresh/login.
+ */
+export async function saveActiveOrder(uid, orderId) {
+  await updateDoc(doc(db, "users", uid), { activeOrderId: orderId });
+}
+
+/**
+ * Clear active order from customer profile.
+ */
+export async function clearActiveOrder(uid) {
+  await updateDoc(doc(db, "users", uid), { activeOrderId: null });
+}
+
+/**
+ * Get active order document if it exists and is not completed/rejected.
+ */
+export async function getActiveOrder(uid) {
+  const profile = await getCustomerProfile(uid);
+  if (!profile?.activeOrderId) return null;
+  const snap = await getDoc(doc(db, "orders", profile.activeOrderId));
+  if (!snap.exists()) return null;
+  const order = { id: snap.id, ...snap.data() };
+  // If order is in a final state, clear it
+  if (['completed', 'rejected'].includes(order.status)) {
+    await clearActiveOrder(uid);
+    return null;
+  }
+  return order;
+}
+
+// ─────────────────────────────────────────────
+// VENDOR AUTH (existing — unchanged)
+// ─────────────────────────────────────────────
+export async function signUp(email, password, name, role = "customer", businessId = null) {
+  const { user } = await createUserWithEmailAndPassword(auth, email, password);
+  await setDoc(doc(db, "users", user.uid), {
+    name, email, role,
+    ...(businessId && { businessId }),
+    createdAt: serverTimestamp()
+  });
+  return user;
+}
+
+export async function signIn(email, password) {
+  const { user } = await signInWithEmailAndPassword(auth, email, password);
+  return user;
+}
+
+export async function logOut() {
+  await signOut(auth);
+}
+
 export function onAuthChange(callback) {
   return onAuthStateChanged(auth, callback);
 }
-/**
- * Fetch user profile doc (role, businessId, etc.)
- * @param {string} uid
- * @returns {Promise<Object|null>}
- */
+
 export async function getUserProfile(uid) {
   const snap = await getDoc(doc(db, "users", uid));
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
