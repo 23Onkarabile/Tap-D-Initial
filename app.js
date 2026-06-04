@@ -311,6 +311,9 @@ function showTrackScreen(order) {
     (order.items||[]).map(i => `${i.qty}× ${i.name}`).join(" · ");
 
   updateTrackStatus(order.status || "pending");
+  // Show floating track button on home screen
+document.getElementById('track-float').style.display = 'flex';
+document.getElementById('track-float-num').textContent = order.orderNumber;
   showScreen("track");
   window.scrollTo(0, 0);
 }
@@ -411,9 +414,14 @@ function resetApp() {
   activeBiz = null; activeMenu = []; cart = [];
   updateCartCount();
   document.getElementById("search-input").value = "";
+  document.getElementById('track-float').style.display = 'none';
   goHome();
 }
-
+function showTrackFromFloat(){
+  if(unsubscribeOrder === null) return;
+  showScreen('track');
+  window.scrollTo(0,0);
+}
 // ══ EXPOSE ══
 window.openMenu = openMenu;
 window.filterBiz = filterBiz;
@@ -427,5 +435,6 @@ window.scrollToSec = scrollToSec;
 window.placeOrder = submitOrder;
 window.goHome = goHome;
 window.resetApp = resetApp;
+window.showTrackFromFloat = showTrackFromFloat;
 
 init();
