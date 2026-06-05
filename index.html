@@ -27,6 +27,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 @keyframes flashGreen{0%,100%{background:var(--black)}50%{background:rgba(200,241,53,0.08)}}
 @keyframes bannerIn{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;
@@ -44,6 +45,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   border-radius:6px;padding:9px 16px;cursor:pointer;font-family:'Syne',sans-serif;
   font-size:13px;font-weight:600;transition:all .2s;backdrop-filter:blur(8px)}
 .back-btn:hover{border-color:var(--lime);color:var(--lime)}
+.profile-btn{background:var(--glass);border:1px solid var(--border);border-radius:6px;
+  width:38px;height:38px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:18px;transition:all .2s;backdrop-filter:blur(8px)}
+.profile-btn:hover{border-color:var(--lime)}
+.profile-btn.logged-in{border-color:var(--lime-border);background:var(--lime-dim)}
 
 /* HOME HERO */
 .home-hero-wrap{position:relative;overflow:hidden;padding-top:64px}
@@ -195,6 +201,56 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .empty-cart .emoji{font-size:52px;margin-bottom:16px;display:block}
 .empty-cart p{font-size:15px;line-height:1.6}
 
+/* AUTH MODAL */
+.auth-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;
+  backdrop-filter:blur(10px);align-items:flex-end;justify-content:center}
+.auth-overlay.open{display:flex}
+.auth-sheet{background:var(--dark);width:100%;max-width:500px;border-radius:20px 20px 0 0;
+  padding:0 28px 48px;max-height:92vh;overflow-y:auto;
+  animation:sheetUp .4s cubic-bezier(.22,1,.36,1);
+  border-top:1px solid var(--border);border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.auth-drag{width:36px;height:3px;background:var(--border);border-radius:2px;margin:18px auto 24px}
+.auth-sheet-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;margin-bottom:6px}
+.auth-sheet-sub{color:var(--grey);font-size:13px;line-height:1.6;margin-bottom:24px}
+.auth-method-tabs{display:flex;gap:8px;margin-bottom:24px}
+.auth-method-tab{flex:1;padding:10px;text-align:center;font-size:12px;font-weight:700;
+  letter-spacing:.5px;cursor:pointer;border-radius:8px;transition:all .2s;
+  color:var(--grey);border:1px solid var(--border);background:none;font-family:'Syne',sans-serif;
+  text-transform:uppercase}
+.auth-method-tab.active{background:var(--lime);border-color:var(--lime);color:var(--black)}
+.recommended-badge{background:var(--lime-dim);border:1px solid var(--lime-border);
+  border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700;letter-spacing:.5px;
+  color:var(--lime);text-transform:uppercase;margin-left:6px;vertical-align:middle}
+.auth-tabs-inner{display:flex;gap:0;margin-bottom:20px;background:var(--black);border-radius:8px;padding:4px}
+.auth-tab-inner{flex:1;padding:9px;text-align:center;font-size:12px;font-weight:700;
+  letter-spacing:.5px;cursor:pointer;border-radius:6px;transition:all .2s;
+  color:var(--grey);border:none;background:none;font-family:'Syne',sans-serif;text-transform:uppercase}
+.auth-tab-inner.active{background:var(--surface);color:var(--white)}
+.auth-field{margin-bottom:16px}
+.auth-field label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--grey);margin-bottom:8px;display:block}
+.auth-input{width:100%;background:var(--black);border:1px solid var(--border);border-radius:8px;
+  padding:13px 16px;color:var(--white);font-family:'Syne',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.auth-input:focus{border-color:var(--lime)}
+.auth-input::placeholder{color:#444}
+.auth-error-msg{font-size:12px;color:var(--red);margin-bottom:14px;min-height:16px}
+.auth-submit-btn{width:100%;background:var(--lime);color:var(--black);border:none;border-radius:8px;
+  padding:16px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;
+  cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
+.auth-submit-btn:hover{background:#d9ff40}
+.auth-submit-btn:disabled{background:#282828;color:#555;cursor:default}
+.auth-divider{display:flex;align-items:center;gap:12px;margin:18px 0}
+.auth-divider-line{flex:1;height:1px;background:var(--border)}
+.auth-divider-text{font-size:11px;color:var(--grey);letter-spacing:1px;text-transform:uppercase}
+.auth-forgot{background:none;border:none;color:var(--grey);font-family:'Syne',sans-serif;
+  font-size:12px;cursor:pointer;padding:8px 0 0;text-decoration:underline;display:block;transition:color .2s}
+.auth-forgot:hover{color:var(--lime)}
+.otp-sent-msg{background:var(--lime-dim);border:1px solid var(--lime-border);border-radius:8px;
+  padding:12px 14px;font-size:13px;color:var(--lime);margin-bottom:16px;display:none}
+.otp-sent-msg.show{display:block}
+.spinner{width:18px;height:18px;border:2px solid rgba(0,0,0,.3);border-top-color:var(--black);
+  border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+
 /* CUSTOMER DETAILS MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:400;
   backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px}
@@ -209,8 +265,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   padding:13px 16px;color:var(--white);font-family:'Syne',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
 .cm-input:focus{border-color:var(--lime)}
 .cm-input::placeholder{color:#444}
+.cm-input:read-only{color:var(--grey);cursor:default}
 .cm-error{font-size:12px;color:var(--red);margin-bottom:16px;min-height:18px}
-.cm-note{font-size:11px;color:var(--grey);margin-bottom:20px;line-height:1.6;
+.cm-note{font-size:11px;margin-bottom:20px;line-height:1.6;
   background:var(--lime-dim);border:1px solid var(--lime-border);border-radius:6px;padding:10px 12px;color:var(--lime)}
 .cm-actions{display:flex;flex-direction:column;gap:10px}
 .cm-confirm-btn{width:100%;background:var(--lime);color:var(--black);border:none;border-radius:8px;
@@ -224,19 +281,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 
 /* TRACK ORDER SCREEN */
 .track-screen{min-height:100vh;padding:80px 28px 60px;max-width:520px;margin:0 auto}
-
-/* READY FLASH */
 .screen.ready-flash{animation:flashGreen 1s ease 3}
-
-/* READY BANNER */
 .ready-banner{display:none;position:fixed;top:64px;left:0;right:0;z-index:199;
-  background:var(--lime);color:var(--black);
-  padding:16px 28px;text-align:center;
+  background:var(--lime);color:var(--black);padding:16px 28px;text-align:center;
   font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;
   animation:bannerIn .4s cubic-bezier(.22,1,.36,1)}
 .ready-banner.show{display:block}
-
-/* STATUS STEPS */
 .track-steps{display:flex;gap:0;margin:28px 0;position:relative}
 .track-steps::before{content:'';position:absolute;top:16px;left:16px;right:16px;height:2px;background:var(--border);z-index:0}
 .track-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;z-index:1}
@@ -247,8 +297,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .track-step.done .step-circle{border-color:var(--lime);background:var(--lime);color:var(--black)}
 .step-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--grey);text-align:center}
 .track-step.active .step-label,.track-step.done .step-label{color:var(--lime)}
-
-/* STATUS BADGE */
 .track-status-badge{display:inline-block;padding:10px 20px;border-radius:8px;
   font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px}
 .track-status-badge.pending{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,77,.3)}
@@ -258,26 +306,85 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .track-status-badge.completed{background:rgba(100,100,100,.1);color:#888;border:1px solid #333}
 .track-status-badge.rejected{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,77,.3)}
 .track-status-sub{color:var(--grey);font-size:14px;line-height:1.6;margin-bottom:28px}
-
-/* TRACK DETAILS */
 .track-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px}
-.track-card-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;
-  display:flex;align-items:center;gap:10px}
+.track-card-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px}
 .track-row{display:flex;justify-content:space-between;align-items:flex-start;
   padding:10px 0;border-bottom:1px solid var(--border);font-size:13.5px;gap:12px}
 .track-row:last-child{border-bottom:none}
 .track-row .t-label{color:var(--grey);flex-shrink:0}
 .track-row .t-val{font-weight:600;text-align:right}
 .track-row .t-val.lime{color:var(--lime);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px}
-
 .track-order-num{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:2px;
   color:var(--lime);margin-bottom:4px;line-height:1}
 .track-biz{font-size:14px;color:var(--grey);margin-bottom:20px}
-
 .home-btn{width:100%;background:transparent;border:1px solid var(--lime);color:var(--lime);
   border-radius:8px;padding:16px;font-family:'Bebas Neue',sans-serif;font-size:20px;
   letter-spacing:2px;cursor:pointer;transition:all .2s}
 .home-btn:hover{background:var(--lime);color:var(--black)}
+
+/* FLOATING TRACK BUTTON */
+.track-float{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:10px;background:var(--lime);color:var(--black);
+  border:none;border-radius:50px;padding:14px 24px;cursor:pointer;z-index:250;
+  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;
+  box-shadow:0 8px 32px rgba(200,241,53,0.3);animation:riseIn .4s cubic-bezier(.22,1,.36,1)}
+.track-float:hover{background:#d9ff40;transform:translateX(-50%) translateY(-2px)}
+.track-float-dot{width:8px;height:8px;border-radius:50%;background:var(--black);animation:pulse 1.5s infinite}
+.track-float-num{font-size:14px;opacity:.7}
+
+/* PROFILE SHEET */
+.profile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;backdrop-filter:blur(6px)}
+.profile-overlay.open{display:flex;align-items:flex-end;justify-content:center}
+.profile-sheet{background:var(--dark);width:100%;max-width:500px;border-radius:18px 18px 0 0;
+  padding:0 28px 48px;max-height:90vh;overflow-y:auto;
+  animation:sheetUp .38s cubic-bezier(.22,1,.36,1);
+  border-top:1px solid var(--border);border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.profile-drag{width:36px;height:3px;background:var(--border);border-radius:2px;margin:18px auto 24px}
+.profile-head{display:flex;align-items:center;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.profile-avatar{width:52px;height:52px;background:var(--lime);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.profile-name{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px}
+.profile-email{font-size:12px;color:var(--grey);margin-top:2px}
+.profile-section-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--grey);margin-bottom:16px}
+.profile-actions{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+.profile-action-btn{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s;
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:var(--white)}
+.profile-action-btn:hover{border-color:var(--lime);color:var(--lime)}
+.profile-action-btn .icon{font-size:18px}
+.sign-out-btn{background:var(--red-dim);border-color:rgba(255,77,77,.3);color:var(--red)}
+.sign-out-btn:hover{background:var(--red);color:var(--white);border-color:var(--red)}
+
+/* ORDER HISTORY SHEET */
+.history-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:450;backdrop-filter:blur(6px)}
+.history-overlay.open{display:flex;align-items:flex-end;justify-content:center}
+.history-sheet{background:var(--dark);width:100%;max-width:600px;border-radius:18px 18px 0 0;
+  padding:0 28px 48px;max-height:88vh;overflow-y:auto;
+  animation:sheetUp .38s cubic-bezier(.22,1,.36,1);
+  border-top:1px solid var(--border);border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.history-drag{width:36px;height:3px;background:var(--border);border-radius:2px;margin:18px auto 24px}
+.history-sheet-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;margin-bottom:4px}
+.history-sheet-sub{color:var(--grey);font-size:13px;margin-bottom:24px}
+.history-order-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:18px;margin-bottom:12px;animation:riseIn .4s cubic-bezier(.22,1,.36,1) both}
+.history-order-card:hover{border-color:var(--lime-border)}
+.hoc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hoc-num{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px}
+.hoc-date{font-size:11px;color:var(--grey)}
+.hoc-biz{font-size:13px;font-weight:600;color:var(--lime);margin-bottom:6px}
+.hoc-items{font-size:12px;color:var(--grey);margin-bottom:10px;line-height:1.6}
+.hoc-foot{display:flex;align-items:center;justify-content:space-between}
+.hoc-total{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--lime)}
+.hoc-status{padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.hoc-status.completed{background:var(--lime-dim);color:var(--lime);border:1px solid var(--lime-border)}
+.hoc-status.pending{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,77,.3)}
+.hoc-status.preparing{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,.3)}
+.hoc-status.ready{background:var(--lime-dim);color:var(--lime);border:1px solid var(--lime-border)}
+.hoc-status.rejected{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,77,.3)}
+.history-empty{text-align:center;padding:48px 0;color:var(--grey)}
+.history-empty-icon{font-size:48px;margin-bottom:16px;display:block;opacity:.4}
+.history-loading{text-align:center;padding:40px;color:var(--grey);font-size:14px}
 
 /* CONFLICT MODAL */
 .conflict-modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;
@@ -296,20 +403,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 
 .loading-state{color:var(--grey);padding:40px;text-align:center;font-size:14px}
 .error{color:var(--red);padding:20px;text-align:center;font-size:14px}
-.spinner{width:18px;height:18px;border:2px solid rgba(0,0,0,.3);border-top-color:var(--black);
-  border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
-  /* FLOATING TRACK BUTTON */
-.track-float{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
-  display:flex;align-items:center;gap:10px;
-  background:var(--lime);color:var(--black);
-  border:none;border-radius:50px;padding:14px 24px;
-  cursor:pointer;z-index:250;
-  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;
-  box-shadow:0 8px 32px rgba(200,241,53,0.3);
-  animation:riseIn .4s cubic-bezier(.22,1,.36,1)}
-.track-float:hover{background:#d9ff40;transform:translateX(-50%) translateY(-2px)}
-.track-float-dot{width:8px;height:8px;border-radius:50%;background:var(--black);animation:pulse 1.5s infinite}
-.track-float-num{font-size:14px;opacity:.7}
 </style>
 </head>
 <body>
@@ -319,6 +412,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   <nav>
     <div class="nav-logo">TAPDISH</div>
     <div class="nav-right">
+      <button type="button" class="profile-btn" id="profile-btn" onclick="openProfileSheet()" title="Account">👤</button>
       <button type="button" class="cart-btn" id="home-cart-btn" onclick="openCart()">
         <span>MY ORDER</span>
         <span class="cart-count" id="cart-count">0</span>
@@ -398,12 +492,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   <div class="track-screen">
     <div class="track-order-num" id="track-order-num">—</div>
     <div class="track-biz" id="track-biz-name">—</div>
-
-    <!-- STATUS -->
     <div id="track-status-badge" class="track-status-badge pending">⏳ Pending</div>
     <div id="track-status-sub" class="track-status-sub">Your order has been received.</div>
-
-    <!-- STEPS -->
     <div class="track-steps">
       <div class="track-step active" id="step-1">
         <div class="step-circle">1</div>
@@ -418,8 +508,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
         <div class="step-label">Ready</div>
       </div>
     </div>
-
-    <!-- ORDER DETAILS -->
     <div class="track-card">
       <div class="track-card-title">📋 Order Details</div>
       <div class="track-row"><span class="t-label">Customer</span><span class="t-val" id="track-customer-name">—</span></div>
@@ -428,7 +516,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
       <div class="track-row"><span class="t-label">Pickup in</span><span class="t-val" id="track-wait">—</span></div>
       <div class="track-row"><span class="t-label">Total</span><span class="t-val lime" id="track-total">—</span></div>
     </div>
-
     <button type="button" class="home-btn" onclick="resetApp()">BACK TO HOME</button>
   </div>
 </div>
@@ -453,27 +540,151 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   </div>
 </div>
 
-<!-- CUSTOMER DETAILS MODAL -->
+<!-- AUTH SHEET -->
+<div class="auth-overlay" id="auth-overlay" onclick="closeAuthOutside(event)">
+  <div class="auth-sheet">
+    <div class="auth-drag"></div>
+    <div class="auth-sheet-title">SIGN IN</div>
+    <div class="auth-sheet-sub">Create an account or sign in to place orders and track them anytime.</div>
+
+    <!-- METHOD TABS: Email vs Phone -->
+    <div class="auth-method-tabs">
+      <button type="button" class="auth-method-tab active" onclick="switchAuthMethod('email')" id="method-email">
+        ✉️ Email <span class="recommended-badge">Recommended</span>
+      </button>
+      <button type="button" class="auth-method-tab" onclick="switchAuthMethod('phone')" id="method-phone">
+        📱 Phone
+      </button>
+    </div>
+
+    <!-- EMAIL SECTION -->
+    <div id="auth-email-section">
+      <div class="auth-tabs-inner">
+        <button type="button" class="auth-tab-inner active" onclick="switchEmailTab('login')" id="etab-login">Login</button>
+        <button type="button" class="auth-tab-inner" onclick="switchEmailTab('signup')" id="etab-signup">Sign Up</button>
+      </div>
+
+      <!-- EMAIL LOGIN -->
+      <div id="email-login-form">
+        <div class="auth-field">
+          <label>Email</label>
+          <input type="email" class="auth-input" id="el-email" placeholder="you@example.com">
+        </div>
+        <div class="auth-field">
+          <label>Password</label>
+          <input type="password" class="auth-input" id="el-password" placeholder="••••••••">
+        </div>
+        <div class="auth-error-msg" id="el-error"></div>
+        <button type="button" class="auth-submit-btn" id="el-btn" onclick="handleEmailLogin()"><span>LOGIN</span></button>
+        <button type="button" class="auth-forgot" onclick="handleAuthForgotPassword()">Forgot password?</button>
+      </div>
+
+      <!-- EMAIL SIGNUP -->
+      <div id="email-signup-form" style="display:none">
+        <div class="auth-field">
+          <label>Full Name</label>
+          <input type="text" class="auth-input" id="es-name" placeholder="e.g. Onkarabile">
+        </div>
+        <div class="auth-field">
+          <label>Phone Number</label>
+          <input type="tel" class="auth-input" id="es-phone" placeholder="e.g. 073 123 4567">
+        </div>
+        <div class="auth-field">
+          <label>Email</label>
+          <input type="email" class="auth-input" id="es-email" placeholder="you@example.com">
+        </div>
+        <div class="auth-field">
+          <label>Password</label>
+          <input type="password" class="auth-input" id="es-password" placeholder="Min. 6 characters">
+        </div>
+        <div class="auth-error-msg" id="es-error"></div>
+        <button type="button" class="auth-submit-btn" id="es-btn" onclick="handleEmailSignup()"><span>CREATE ACCOUNT</span></button>
+      </div>
+    </div>
+
+    <!-- PHONE SECTION -->
+    <div id="auth-phone-section" style="display:none">
+      <div id="phone-step-1">
+        <div class="auth-field">
+          <label>Phone Number</label>
+          <input type="tel" class="auth-input" id="ph-number" placeholder="+27 73 123 4567">
+        </div>
+        <div class="auth-error-msg" id="ph-error"></div>
+        <div id="recaptcha-container"></div>
+        <button type="button" class="auth-submit-btn" id="ph-btn" onclick="handleSendOTP()"><span>SEND OTP</span></button>
+      </div>
+      <div id="phone-step-2" style="display:none">
+        <div class="otp-sent-msg show" id="otp-sent-msg">OTP sent! Check your messages.</div>
+        <div class="auth-field">
+          <label>Enter OTP</label>
+          <input type="number" class="auth-input" id="ph-otp" placeholder="6-digit code">
+        </div>
+        <div class="auth-field">
+          <label>Your Name</label>
+          <input type="text" class="auth-input" id="ph-name" placeholder="e.g. Onkarabile">
+        </div>
+        <div class="auth-error-msg" id="ph-otp-error"></div>
+        <button type="button" class="auth-submit-btn" id="ph-otp-btn" onclick="handleVerifyOTP()"><span>VERIFY & CONTINUE</span></button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CUSTOMER DETAILS MODAL (pre-order name/phone confirm) -->
 <div class="modal-overlay" id="customer-modal">
   <div class="customer-modal">
-    <div class="cm-title">ALMOST THERE</div>
-    <div class="cm-sub">We need your details so the restaurant can call your order when it's ready.</div>
+    <div class="cm-title">CONFIRM ORDER</div>
+    <div class="cm-sub">Review your details before placing the order.</div>
     <div class="cm-field">
       <label class="cm-label">Your Name</label>
-      <input type="text" class="cm-input" id="customer-name" placeholder="e.g. Onkarabile" maxlength="40">
+      <input type="text" class="cm-input" id="customer-name" placeholder="Your name">
     </div>
     <div class="cm-field">
       <label class="cm-label">Phone Number</label>
-      <input type="tel" class="cm-input" id="customer-phone" placeholder="e.g. 073 123 4567" maxlength="15">
+      <input type="tel" class="cm-input" id="customer-phone" placeholder="Your phone number">
     </div>
     <div class="cm-error" id="customer-modal-error"></div>
-    <div class="cm-note">📱 Your phone number is used only to identify your order at pickup.</div>
+    <div class="cm-note">📱 Used to identify your order at pickup.</div>
     <div class="cm-actions">
       <button type="button" class="cm-confirm-btn" id="confirm-customer-btn" onclick="confirmCustomerDetails()">
         CONFIRM &amp; PLACE ORDER
       </button>
       <button type="button" class="cm-cancel-btn" onclick="closeCustomerModal()">Cancel</button>
     </div>
+  </div>
+</div>
+
+<!-- PROFILE SHEET -->
+<div class="profile-overlay" id="profile-overlay" onclick="closeProfileOutside(event)">
+  <div class="profile-sheet">
+    <div class="profile-drag"></div>
+    <div class="profile-head">
+      <div class="profile-avatar">👤</div>
+      <div>
+        <div class="profile-name" id="profile-name">—</div>
+        <div class="profile-email" id="profile-email">—</div>
+      </div>
+    </div>
+    <div class="profile-section-title">Account</div>
+    <div class="profile-actions">
+      <button type="button" class="profile-action-btn" onclick="openOrderHistory()">
+        <span class="icon">🧾</span> Order History
+      </button>
+      <button type="button" class="profile-action-btn sign-out-btn" onclick="handleSignOut()">
+        <span class="icon">🚪</span> Sign Out
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER HISTORY SHEET -->
+<div class="history-overlay" id="history-overlay" onclick="closeHistoryOutside(event)">
+  <div class="history-sheet">
+    <div class="history-drag"></div>
+    <div class="history-sheet-title">ORDER HISTORY</div>
+    <div class="history-sheet-sub" id="history-sheet-sub">Your past orders</div>
+    <div id="history-list"></div>
   </div>
 </div>
 
@@ -492,12 +703,15 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
     </div>
   </div>
 </div>
+
 <!-- FLOATING TRACK BUTTON -->
 <div class="track-float" id="track-float" onclick="showTrackFromFloat()" style="display:none">
   <div class="track-float-dot"></div>
   <span>TRACK MY ORDER</span>
   <span class="track-float-num" id="track-float-num"></span>
 </div>
+
 <script type="module" src="app.js"></script>
 </body>
 </html>
+
