@@ -247,14 +247,13 @@ export async function clearCart(uid) {
  * can be restored after refresh/login.
  */
 export async function saveActiveOrder(uid, orderId) {
-  await updateDoc(doc(db, "users", uid), { activeOrderId: orderId });
+  await setDoc(doc(db, "users", uid), { activeOrderId: orderId }, { merge: true });
 }
-
 /**
  * Clear active order from customer profile.
  */
 export async function clearActiveOrder(uid) {
-  await updateDoc(doc(db, "users", uid), { activeOrderId: null });
+  await setDoc(doc(db, "users", uid), { activeOrderId: null }, { merge: true });
 }
 
 /**
