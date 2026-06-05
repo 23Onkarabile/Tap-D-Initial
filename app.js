@@ -676,6 +676,8 @@ window.openOrderHistory = async function() {
         </div>`;
     }).join('');
   } catch(e) {
+    const url = e.message.match(/https:\/\/\S+/)?.[0];
+    if(url) prompt('Copy this URL to create the index:', url);
     listEl.innerHTML = `<div class="history-empty"><p>Error loading orders.<br>${e.message}</p></div>`;
   }
 }
