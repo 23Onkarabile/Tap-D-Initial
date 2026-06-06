@@ -138,6 +138,7 @@ async function restoreActiveOrder() {
     const order = await getActiveOrder(currentUser.uid);
     if (!order) return;
     // Restore track screen data
+    appState.orderActive = true;
     showTrackScreen(order, false); // false = don't navigate to track screen
     // Show floating button
     document.getElementById('track-float').style.display = 'flex';
@@ -153,6 +154,7 @@ unsubscribeOrder = subscribeToOrder(order.id, (updated) => { {
       // Clear active order when completed/rejected
       if (['completed','rejected'].includes(updated.status)) {
         if (currentUser) clearActiveOrder(currentUser.uid);
+        appState.orderActive = false;
       }
     });
   } catch(e) { console.error('restoreActiveOrder:', e); }
@@ -227,12 +229,14 @@ async function openMenu(bizSlug, pushHistory = true) {
 
   appState.activeMenu = activeMenu || [];
 
-  document.getElementById("cat-nav").innerHTML = activeMenu.map((sec, i) =>
-    `<button class="cat-pill ${i === 0 ? "active" : ""}"
-      onclick="scrollToSec('${sec.category}',this)">
-      ${sec.category}
-    </button>`
-  ).join("");
+  document.getElementById("cat-nav").innerHTML = activeMenu
+    .map((sec, i) =>
+      `<button class="cat-pill ${i === 0 ? "active" : ""}"
+        onclick="scrollToSec('${sec.category}',this)">
+        ${sec.category}
+      </button>`
+    )
+    .join("");
 
   renderMenuItems();
   window.scrollTo(0, 0);
@@ -288,14 +292,51 @@ function scrollToSec(cat, btn) {
   const el = document.getElementById(`sec-${cat}`);
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
-
+function isDifferentBiz(itemBizId) {
+  return cart.length > 0 && cart[0].bizId !== itemBizId;
+}
 // ══ CART ══
 function addItem(item) {
-  appState.cart = cart;
-appState.activeBiz = activeBiz;
+function addItem(item) {
+  // 🚨 If cart has items from a different business, block or reset
+  if (cart.length > 0 && cart[0].bizId !== activeBiz.id) {
+    document.getElementById('conflict-overlay').classList.add('open');
+
+    // store pending item attempt
+    window._pendingItem = item;
+    window._pendingBizSlug = activeBiz.slug || activeBiz.id;
+    return;
+  }
+
   const ex = cart.find(c => c.id === item.id);
+
   if (ex) ex.qty++;
   else cart.push({ ...item, qty: 1, bizId: activeBiz.id, bizName: activeBiz.name });
+
+  appState.cart = cart;
+
+  updateCartCount();
+  refreshItem(item.id);
+  persistCart();
+}
+  // 🚨 BLOCK if switching restaurants
+  if (isDifferentBiz(activeBiz.id)) {
+
+    window._pendingItem = item;
+
+    document.getElementById("conflict-overlay").classList.add("open");
+    return;
+  }
+
+  const ex = cart.find(c => c.id === item.id);
+
+  if (ex) ex.qty++;
+  else cart.push({
+    ...item,
+    qty: 1,
+    bizId: activeBiz.id,
+    bizName: activeBiz.name
+  });
   updateCartCount();
   refreshItem(item.id);
   persistCart();
@@ -304,14 +345,17 @@ appState.activeBiz = activeBiz;
 
 function changeQty(id, d) {
   const idx = cart.findIndex(c => c.id === id);
-  appState.cart = cart;
   if (idx === -1) return;
+
   cart[idx].qty += d;
+
   if (cart[idx].qty <= 0) cart.splice(idx, 1);
+
+  appState.cart = cart; // 🔥 sync ONCE, after changes are done
+
   updateCartCount();
   refreshItem(id);
   persistCart();
-  appState.cart = cart;
 }
 
 function updateCartCount() {
@@ -349,8 +393,12 @@ function openCart() {
 
 function removeFromCart(id) {
   cart = cart.filter(c => c.id !== id);
+
+  appState.cart = cart; // 🔥 KEEP STATE SYNCED
+
   updateCartCount();
   openCart();
+
   if (activeBiz) refreshItem(id);
   persistCart();
 }
@@ -359,10 +407,29 @@ function closeCartOutside(e) {
   if (e.target === document.getElementById("cart-overlay"))
     document.getElementById("cart-overlay").classList.remove("open");
 }
+window.cancelConflict = function () {
+  document.getElementById('conflict-overlay').classList.remove('open');
+  window._pendingItem = null;
+  window._pendingBizSlug = null;
+};
 function closeCart() {
   document.getElementById("cart-overlay").classList.remove("open");
 }
+window.confirmClearCart = function () {
+  cart = [];
 
+  appState.cart = cart;
+
+  updateCartCount();
+  persistCart();
+
+  document.getElementById('conflict-overlay').classList.remove('open');
+
+  if (window._pendingItem) {
+    addItem(window._pendingItem);
+    window._pendingItem = null;
+  }
+};
 // ══ ORDER PLACEMENT ══
 async function submitOrder() {
   if (!cart.length) return;
@@ -841,13 +908,22 @@ window.goHome = goHome;
 window.resetApp = resetApp;
 window.startOver = startOver;
 window.showTrackFromFloat = showTrackFromFloat;
-window.confirmClearCart = function() {
+window.confirmClearCart = async function() {
+
   cart = [];
   updateCartCount();
-  persistCart();
+
+  if (currentUser) {
+    await clearCart(currentUser.uid);
+  }
   document.getElementById('conflict-overlay').classList.remove('open');
-  if (window._pendingBizSlug) { openMenu(window._pendingBizSlug); window._pendingBizSlug = null; }
-}
+  if (window._pendingItem) {
+    const item = window._pendingItem;
+    window._pendingItem = null;
+    addItem(item);
+  }
+  appState.cart = cart;
+};
 window.cancelConflict = function() {
   document.getElementById('conflict-overlay').classList.remove('open');
   window._pendingBizSlug = null;
