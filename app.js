@@ -704,13 +704,17 @@ function goHome(pushHistory = true) {
   window.scrollTo(0, 0);
 }
 
-function resetApp() {
+function startOver() {
   activeBiz = null; activeMenu = []; cart = [];
   updateCartCount();
   if (currentUser) clearCart(currentUser.uid);
   document.getElementById("search-input").value = "";
   document.getElementById('track-float').style.display = 'none';
   if (unsubscribeOrder) { unsubscribeOrder(); unsubscribeOrder = null; }
+  goHome();
+}
+// Safe navigation home — does NOT clear cart
+function resetApp() {
   goHome();
 }
 
@@ -763,6 +767,7 @@ window.scrollToSec = scrollToSec;
 window.placeOrder = submitOrder;
 window.goHome = goHome;
 window.resetApp = resetApp;
+window.startOver = startOver;
 window.showTrackFromFloat = showTrackFromFloat;
 window.confirmClearCart = function() {
   cart = [];
