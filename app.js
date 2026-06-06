@@ -97,16 +97,22 @@ async function init() {
 // ══ PROFILE UI ══
 function updateProfileUI() {
   const btn = document.getElementById('profile-btn');
+
+  if (!btn) return; // 🔥 prevents silent failure
+
+  const nameEl = document.getElementById('profile-name');
+  const emailEl = document.getElementById('profile-email');
+
   if (currentUser && currentProfile) {
     btn.classList.add('logged-in');
     btn.title = currentProfile.name || currentUser.email;
-    document.getElementById('profile-name').textContent = currentProfile.name || 'Customer';
-    document.getElementById('profile-email').textContent = currentProfile.email || currentUser.phoneNumber || '—';
+    if (nameEl) nameEl.textContent = currentProfile.name || 'Customer';
+    if (emailEl) emailEl.textContent = currentProfile.email || currentUser.phoneNumber || '—';
   } else {
     btn.classList.remove('logged-in');
     btn.title = 'Account';
-    document.getElementById('profile-name').textContent = '—';
-    document.getElementById('profile-email').textContent = 'Not signed in';
+    if (nameEl) nameEl.textContent = '—';
+    if (emailEl) emailEl.textContent = 'Not signed in';
   }
 }
 
