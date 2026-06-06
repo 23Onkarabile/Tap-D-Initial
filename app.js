@@ -135,8 +135,12 @@ async function restoreActiveOrder() {
     document.getElementById('track-float').style.display = 'flex';
     document.getElementById('track-float-num').textContent = order.orderNumber;
     // Re-subscribe to order updates
-    if (unsubscribeOrder) unsubscribeOrder();
-    unsubscribeOrder = subscribeToOrder(order.id, (updated) => {
+    if (unsubscribeOrder) {
+  unsubscribeOrder();
+  unsubscribeOrder = null;
+}
+
+unsubscribeOrder = subscribeToOrder(order.id, (updated) => { {
       updateTrackStatus(updated.status);
       // Clear active order when completed/rejected
       if (['completed','rejected'].includes(updated.status)) {
@@ -451,7 +455,14 @@ function showTrackScreen(order, navigate = true) {
 
   updateTrackStatus(order.status || "pending");
 
-  document.getElementById('track-float').style.display = 'flex';
+  const float = document.getElementById('track-float');
+if (order.status !== "completed" && order.status !== "rejected") {
+  float.style.display = 'flex';
+  float.dataset.active = "true";
+} else {
+  float.style.display = 'none';
+  float.dataset.active = "false";
+}
   document.getElementById('track-float-num').textContent = order.orderNumber;
 
   if (navigate) {
@@ -703,16 +714,29 @@ function showScreen(id) {
 function goHome(pushHistory = true) {
   if (pushHistory) pushRoute(null);
   showScreen("home");
-  // Keep float button visible if there's an active order
-  if (unsubscribeOrder) {
-    document.getElementById('track-float').style.display = 'flex';
+  activeBiz = null;
+  activeMenu = [];
+  const float = document.getElementById('track-float');
+  if (float && float.style.display === 'flex') {
+    float.style.display = 'flex';
+  } else {
+    float.style.display = 'none';
   }
   window.scrollTo(0, 0);
 }
 
 async function startOver() {
-  // 🛒 ONLY clear cart
+  // 🛑 stop live order listener
+  if (unsubscribeOrder) {
+    unsubscribeOrder();
+    unsubscribeOrder = null;
+  }
+
+  // 🧹 reset app state
+  activeBiz = null;
+  activeMenu = [];
   cart = [];
+
   updateCartCount();
 
   // ☁️ clear cart in DB
@@ -720,12 +744,17 @@ async function startOver() {
     await clearCart(currentUser.uid);
   }
 
-  // 🔍 clear search only
+  // 🔍 clear search
   const input = document.getElementById("search-input");
   if (input) input.value = "";
 
-  // 🏠 go home
-  goHome();
+  // 🧾 reset tracking UI
+  const float = document.getElementById("track-float");
+  if (float) float.style.display = "none";
+
+  showScreen("home");
+  window.scrollTo(0, 0);
+}
 }
 // Safe navigation home — does NOT clear cart
 function resetApp() {
