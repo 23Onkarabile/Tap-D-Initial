@@ -710,13 +710,21 @@ function goHome(pushHistory = true) {
   window.scrollTo(0, 0);
 }
 
-function startOver() {
-  activeBiz = null; activeMenu = []; cart = [];
+async function startOver() {
+  // 🛒 ONLY clear cart
+  cart = [];
   updateCartCount();
-  if (currentUser) clearCart(currentUser.uid);
-  document.getElementById("search-input").value = "";
-  document.getElementById('track-float').style.display = 'none';
-  if (unsubscribeOrder) { unsubscribeOrder(); unsubscribeOrder = null; }
+
+  // ☁️ clear cart in DB
+  if (currentUser) {
+    await clearCart(currentUser.uid);
+  }
+
+  // 🔍 clear search only
+  const input = document.getElementById("search-input");
+  if (input) input.value = "";
+
+  // 🏠 go home
   goHome();
 }
 // Safe navigation home — does NOT clear cart
