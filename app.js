@@ -420,6 +420,8 @@ window.confirmCustomerDetails = async function() {
     updateCartCount();
 
     showTrackScreen(order, true);
+document.getElementById('track-float').style.display = 'flex';
+document.getElementById('track-float-num').textContent = order.orderNumber;
 
     if (unsubscribeOrder) unsubscribeOrder();
     unsubscribeOrder = subscribeToOrder(order.id, async (updated) => {
@@ -701,6 +703,10 @@ function showScreen(id) {
 function goHome(pushHistory = true) {
   if (pushHistory) pushRoute(null);
   showScreen("home");
+  // Keep float button visible if there's an active order
+  if (unsubscribeOrder) {
+    document.getElementById('track-float').style.display = 'flex';
+  }
   window.scrollTo(0, 0);
 }
 
