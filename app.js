@@ -22,6 +22,14 @@ let businesses = [];
 let cart = [];
 let activeBiz = null;
 let activeMenu = [];
+const appState = {
+  cart,
+  activeBiz,
+  activeMenu,
+  currentUser,
+  currentProfile,
+  orderActive: false
+};
 let unsubscribeBusinesses = null;
 let unsubscribeOrder = null;
 let pendingOrderData = null;
@@ -195,21 +203,37 @@ function filterBiz() {
 async function openMenu(bizSlug, pushHistory = true) {
   showLoading("menu-items");
   showScreen("menu");
+
   activeBiz = await getBusiness(bizSlug);
+
   if (!activeBiz) {
-    document.getElementById("menu-items").innerHTML = `<div class="error">Business not found.</div>`;
+    document.getElementById("menu-items").innerHTML =
+      `<div class="error">Business not found.</div>`;
     return;
   }
+
+  appState.activeBiz = activeBiz;
+
   if (pushHistory) pushRoute(bizSlug);
+
   document.getElementById("menu-banner").src = activeBiz.bannerUrl;
   document.getElementById("menu-biz-name").textContent = activeBiz.name;
   document.getElementById("menu-rating").textContent = activeBiz.rating;
   document.getElementById("menu-location").textContent = activeBiz.location;
-  document.getElementById("menu-time").textContent = `${activeBiz.estimatedWaitMin}–${activeBiz.estimatedWaitMax} min`;
+  document.getElementById("menu-time").textContent =
+    `${activeBiz.estimatedWaitMin}–${activeBiz.estimatedWaitMax} min`;
+
   activeMenu = await getMenu(bizSlug);
+
+  appState.activeMenu = activeMenu || [];
+
   document.getElementById("cat-nav").innerHTML = activeMenu.map((sec, i) =>
-    `<button class="cat-pill ${i === 0 ? "active" : ""}" onclick="scrollToSec('${sec.category}',this)">${sec.category}</button>`
+    `<button class="cat-pill ${i === 0 ? "active" : ""}"
+      onclick="scrollToSec('${sec.category}',this)">
+      ${sec.category}
+    </button>`
   ).join("");
+
   renderMenuItems();
   window.scrollTo(0, 0);
 }
@@ -267,22 +291,27 @@ function scrollToSec(cat, btn) {
 
 // ══ CART ══
 function addItem(item) {
+  appState.cart = cart;
+appState.activeBiz = activeBiz;
   const ex = cart.find(c => c.id === item.id);
   if (ex) ex.qty++;
   else cart.push({ ...item, qty: 1, bizId: activeBiz.id, bizName: activeBiz.name });
   updateCartCount();
   refreshItem(item.id);
   persistCart();
+  appState.cart = cart;
 }
 
 function changeQty(id, d) {
   const idx = cart.findIndex(c => c.id === id);
+  appState.cart = cart;
   if (idx === -1) return;
   cart[idx].qty += d;
   if (cart[idx].qty <= 0) cart.splice(idx, 1);
   updateCartCount();
   refreshItem(id);
   persistCart();
+  appState.cart = cart;
 }
 
 function updateCartCount() {
