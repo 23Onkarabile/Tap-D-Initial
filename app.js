@@ -1,4 +1,5 @@
 // app.js — Customer-facing app
+// app.js — Customer-facing app
 window.addEventListener("error", () => {
   const biz = document.getElementById("biz-list");
   if (biz && biz.innerHTML.includes("Loading")) {
@@ -22,21 +23,13 @@ let businesses = [];
 let cart = [];
 let activeBiz = null;
 let activeMenu = [];
-const appState = {
-  cart,
-  activeBiz,
-  activeMenu,
-  currentUser,
-  currentProfile,
-  orderActive: false
-};
 let unsubscribeBusinesses = null;
 let unsubscribeOrder = null;
 let pendingOrderData = null;
 let currentUser = null;
 let currentProfile = null;
-let otpConfirmation = null; // for phone OTP flow
-let pendingCartAfterAuth = false; // flag to open customer modal after login
+let otpConfirmation = null;
+let pendingCartAfterAuth = false;
 
 // ══ ROUTING ══
 function resolveRoute() {
@@ -55,21 +48,13 @@ window.addEventListener("popstate", (e) => {
 async function init() {
   showLoading("biz-list");
 
-  // Listen to auth state
   onCustomerAuthChange(async (user) => {
     currentUser = user;
     if (user) {
-      // Load profile
       currentProfile = await getCustomerProfile(user.uid);
       updateProfileUI();
-
-      // Restore cart from Firestore
       await restoreCart();
-
-      // Restore active order if any
       await restoreActiveOrder();
-
-      // If was waiting to place order after auth
       if (pendingCartAfterAuth) {
         pendingCartAfterAuth = false;
         closeAuthSheet();
@@ -82,7 +67,6 @@ async function init() {
     }
   });
 
-  // Subscribe to businesses
   unsubscribeBusinesses = subscribeToBusinesses((data) => {
     businesses = data;
     const openCount = data.filter(b => b.isOpen).length;
@@ -97,21 +81,18 @@ async function init() {
 // ══ PROFILE UI ══
 function updateProfileUI() {
   const btn = document.getElementById('profile-btn');
-
-  if (!btn) return; // 🔥 prevents silent failure
-
-  const nameEl = document.getElementById('profile-name');
+  if (!btn) return;
+  const nameEl  = document.getElementById('profile-name');
   const emailEl = document.getElementById('profile-email');
-
   if (currentUser && currentProfile) {
     btn.classList.add('logged-in');
     btn.title = currentProfile.name || currentUser.email;
-    if (nameEl) nameEl.textContent = currentProfile.name || 'Customer';
+    if (nameEl)  nameEl.textContent  = currentProfile.name  || 'Customer';
     if (emailEl) emailEl.textContent = currentProfile.email || currentUser.phoneNumber || '—';
   } else {
     btn.classList.remove('logged-in');
     btn.title = 'Account';
-    if (nameEl) nameEl.textContent = '—';
+    if (nameEl)  nameEl.textContent  = '—';
     if (emailEl) emailEl.textContent = 'Not signed in';
   }
 }
@@ -143,24 +124,14 @@ async function restoreActiveOrder() {
   try {
     const order = await getActiveOrder(currentUser.uid);
     if (!order) return;
-    // Restore track screen data
-    appState.orderActive = true;
-    showTrackScreen(order, false); // false = don't navigate to track screen
-    // Show floating button
+    showTrackScreen(order, false);
     document.getElementById('track-float').style.display = 'flex';
     document.getElementById('track-float-num').textContent = order.orderNumber;
-    // Re-subscribe to order updates
-    if (unsubscribeOrder) {
-  unsubscribeOrder();
-  unsubscribeOrder = null;
-}
-
-unsubscribeOrder = subscribeToOrder(order.id, (updated) => { {
+    if (unsubscribeOrder) { unsubscribeOrder(); unsubscribeOrder = null; }
+    unsubscribeOrder = subscribeToOrder(order.id, (updated) => {
       updateTrackStatus(updated.status);
-      // Clear active order when completed/rejected
       if (['completed','rejected'].includes(updated.status)) {
         if (currentUser) clearActiveOrder(currentUser.uid);
-        appState.orderActive = false;
       }
     });
   } catch(e) { console.error('restoreActiveOrder:', e); }
@@ -211,39 +182,21 @@ function filterBiz() {
 async function openMenu(bizSlug, pushHistory = true) {
   showLoading("menu-items");
   showScreen("menu");
-
   activeBiz = await getBusiness(bizSlug);
-
   if (!activeBiz) {
-    document.getElementById("menu-items").innerHTML =
-      `<div class="error">Business not found.</div>`;
+    document.getElementById("menu-items").innerHTML = `<div class="error">Business not found.</div>`;
     return;
   }
-
-  appState.activeBiz = activeBiz;
-
   if (pushHistory) pushRoute(bizSlug);
-
   document.getElementById("menu-banner").src = activeBiz.bannerUrl;
   document.getElementById("menu-biz-name").textContent = activeBiz.name;
   document.getElementById("menu-rating").textContent = activeBiz.rating;
   document.getElementById("menu-location").textContent = activeBiz.location;
-  document.getElementById("menu-time").textContent =
-    `${activeBiz.estimatedWaitMin}–${activeBiz.estimatedWaitMax} min`;
-
+  document.getElementById("menu-time").textContent = `${activeBiz.estimatedWaitMin}–${activeBiz.estimatedWaitMax} min`;
   activeMenu = await getMenu(bizSlug);
-
-  appState.activeMenu = activeMenu || [];
-
-  document.getElementById("cat-nav").innerHTML = activeMenu
-    .map((sec, i) =>
-      `<button class="cat-pill ${i === 0 ? "active" : ""}"
-        onclick="scrollToSec('${sec.category}',this)">
-        ${sec.category}
-      </button>`
-    )
-    .join("");
-
+  document.getElementById("cat-nav").innerHTML = activeMenu.map((sec, i) =>
+    `<button class="cat-pill ${i === 0 ? "active" : ""}" onclick="scrollToSec('${sec.category}',this)">${sec.category}</button>`
+  ).join("");
   renderMenuItems();
   window.scrollTo(0, 0);
 }
@@ -298,67 +251,29 @@ function scrollToSec(cat, btn) {
   const el = document.getElementById(`sec-${cat}`);
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
-function isDifferentBiz(itemBizId) {
-  return cart.length > 0 && cart[0].bizId !== itemBizId;
-}
+
 // ══ CART ══
 function addItem(item) {
-function addItem(item) {
-  // 🚨 If cart has items from a different business, block or reset
+  // If cart has items from a different business show conflict modal
   if (cart.length > 0 && cart[0].bizId !== activeBiz.id) {
-    document.getElementById('conflict-overlay').classList.add('open');
-
-    // store pending item attempt
     window._pendingItem = item;
     window._pendingBizSlug = activeBiz.slug || activeBiz.id;
+    document.getElementById('conflict-overlay').classList.add('open');
     return;
   }
-
   const ex = cart.find(c => c.id === item.id);
-
   if (ex) ex.qty++;
   else cart.push({ ...item, qty: 1, bizId: activeBiz.id, bizName: activeBiz.name });
-
-  appState.cart = cart;
-
   updateCartCount();
   refreshItem(item.id);
   persistCart();
-}
-  // 🚨 BLOCK if switching restaurants
-  if (isDifferentBiz(activeBiz.id)) {
-
-    window._pendingItem = item;
-
-    document.getElementById("conflict-overlay").classList.add("open");
-    return;
-  }
-
-  const ex = cart.find(c => c.id === item.id);
-
-  if (ex) ex.qty++;
-  else cart.push({
-    ...item,
-    qty: 1,
-    bizId: activeBiz.id,
-    bizName: activeBiz.name
-  });
-  updateCartCount();
-  refreshItem(item.id);
-  persistCart();
-  appState.cart = cart;
 }
 
 function changeQty(id, d) {
   const idx = cart.findIndex(c => c.id === id);
   if (idx === -1) return;
-
   cart[idx].qty += d;
-
   if (cart[idx].qty <= 0) cart.splice(idx, 1);
-
-  appState.cart = cart; // 🔥 sync ONCE, after changes are done
-
   updateCartCount();
   refreshItem(id);
   persistCart();
@@ -372,9 +287,9 @@ function updateCartCount() {
 }
 
 function openCart() {
-  const listEl = document.getElementById("cart-items-list");
-  const totalEl = document.getElementById("cart-total");
-  const bizEl = document.getElementById("cart-biz-name");
+  const listEl   = document.getElementById("cart-items-list");
+  const totalEl  = document.getElementById("cart-total");
+  const bizEl    = document.getElementById("cart-biz-name");
   const orderBtn = document.getElementById("order-btn");
   if (cart.length === 0) {
     listEl.innerHTML = `<div class="empty-cart"><span class="emoji">🍽</span><p>Your order is empty.<br>Add something good.</p></div>`;
@@ -399,12 +314,8 @@ function openCart() {
 
 function removeFromCart(id) {
   cart = cart.filter(c => c.id !== id);
-
-  appState.cart = cart; // 🔥 KEEP STATE SYNCED
-
   updateCartCount();
   openCart();
-
   if (activeBiz) refreshItem(id);
   persistCart();
 }
@@ -413,29 +324,10 @@ function closeCartOutside(e) {
   if (e.target === document.getElementById("cart-overlay"))
     document.getElementById("cart-overlay").classList.remove("open");
 }
-window.cancelConflict = function () {
-  document.getElementById('conflict-overlay').classList.remove('open');
-  window._pendingItem = null;
-  window._pendingBizSlug = null;
-};
 function closeCart() {
   document.getElementById("cart-overlay").classList.remove("open");
 }
-window.confirmClearCart = function () {
-  cart = [];
 
-  appState.cart = cart;
-
-  updateCartCount();
-  persistCart();
-
-  document.getElementById('conflict-overlay').classList.remove('open');
-
-  if (window._pendingItem) {
-    addItem(window._pendingItem);
-    window._pendingItem = null;
-  }
-};
 // ══ ORDER PLACEMENT ══
 async function submitOrder() {
   if (!cart.length) return;
@@ -443,8 +335,6 @@ async function submitOrder() {
   orderBtn.disabled = true;
   orderBtn.textContent = "Almost there…";
   closeCart();
-
-  // If not logged in, show auth sheet first
   if (!currentUser) {
     pendingCartAfterAuth = true;
     openAuthSheet();
@@ -452,7 +342,6 @@ async function submitOrder() {
     orderBtn.textContent = "PLACE ORDER · PICKUP";
     return;
   }
-
   openCustomerModal();
 }
 
@@ -464,13 +353,11 @@ function openCustomerModal() {
     qty: c.qty, subtotal: +(c.price * c.qty).toFixed(2)
   }));
   pendingOrderData = {
-    businessId: activeBiz ? activeBiz.id : cart[0]?.bizId,
+    businessId:   activeBiz ? activeBiz.id   : cart[0]?.bizId,
     businessName: activeBiz ? activeBiz.name : cart[0]?.bizName,
     items, total: +total.toFixed(2),
     estimatedWait: activeBiz ? `${activeBiz.estimatedWaitMin}–${activeBiz.estimatedWaitMax} min` : '15 min',
   };
-
-  // Pre-fill from profile
   const nameEl  = document.getElementById("customer-name");
   const phoneEl = document.getElementById("customer-phone");
   if (currentProfile) {
@@ -479,7 +366,6 @@ function openCustomerModal() {
   } else {
     nameEl.value = ''; phoneEl.value = '';
   }
-
   document.getElementById("customer-modal-error").textContent = "";
   document.getElementById("confirm-customer-btn").disabled = false;
   document.getElementById("confirm-customer-btn").textContent = "CONFIRM & PLACE ORDER";
@@ -497,15 +383,12 @@ window.confirmCustomerDetails = async function() {
   const name  = document.getElementById("customer-name").value.trim();
   const phone = document.getElementById("customer-phone").value.trim();
   const errEl = document.getElementById("customer-modal-error");
-
   if (!name)  { errEl.textContent = "Please enter your name."; return; }
   if (!phone) { errEl.textContent = "Please enter your phone number."; return; }
   if (!/^[0-9+\s]{7,15}$/.test(phone)) { errEl.textContent = "Please enter a valid phone number."; return; }
-
   errEl.textContent = "";
   document.getElementById("confirm-customer-btn").disabled = true;
   document.getElementById("confirm-customer-btn").textContent = "Placing order…";
-
   try {
     const order = await placeOrder({
       ...pendingOrderData,
@@ -513,30 +396,22 @@ window.confirmCustomerDetails = async function() {
       customerPhone: phone,
       customerId: currentUser ? currentUser.uid : null
     });
-
-    // Save active order to Firestore for persistence
     if (currentUser) {
       await saveActiveOrder(currentUser.uid, order.id);
       await clearCart(currentUser.uid);
     }
-
     document.getElementById("customer-modal").classList.remove("open");
     document.getElementById("cart-overlay").classList.remove("open");
     cart = [];
     updateCartCount();
-
     showTrackScreen(order, true);
-document.getElementById('track-float').style.display = 'flex';
-document.getElementById('track-float-num').textContent = order.orderNumber;
-
-    if (unsubscribeOrder) unsubscribeOrder();
+    if (unsubscribeOrder) { unsubscribeOrder(); unsubscribeOrder = null; }
     unsubscribeOrder = subscribeToOrder(order.id, async (updated) => {
       updateTrackStatus(updated.status);
       if (['completed','rejected'].includes(updated.status)) {
         if (currentUser) await clearActiveOrder(currentUser.uid);
       }
     });
-
   } catch(err) {
     errEl.textContent = "Error: " + err.message;
     document.getElementById("confirm-customer-btn").disabled = false;
@@ -554,23 +429,16 @@ function showTrackScreen(order, navigate = true) {
   document.getElementById("track-total").textContent = `$${(order.total||0).toFixed(2)}`;
   document.getElementById("track-items").textContent =
     (order.items||[]).map(i => `${i.qty}× ${i.name}`).join(" · ");
-
   updateTrackStatus(order.status || "pending");
-
+  // Show float button only for active orders
   const float = document.getElementById('track-float');
-if (order.status !== "completed" && order.status !== "rejected") {
-  float.style.display = 'flex';
-  float.dataset.active = "true";
-} else {
-  float.style.display = 'none';
-  float.dataset.active = "false";
-}
-  document.getElementById('track-float-num').textContent = order.orderNumber;
-
-  if (navigate) {
-    showScreen("track");
-    window.scrollTo(0, 0);
+  if (!['completed','rejected'].includes(order.status)) {
+    float.style.display = 'flex';
+    document.getElementById('track-float-num').textContent = order.orderNumber;
+  } else {
+    float.style.display = 'none';
   }
+  if (navigate) { showScreen("track"); window.scrollTo(0, 0); }
 }
 
 const STATUS_CONFIG = {
@@ -585,6 +453,7 @@ function updateTrackStatus(status) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
   const badgeEl = document.getElementById("track-status-badge");
   const subEl   = document.getElementById("track-status-sub");
+  if (!badgeEl || !subEl) return;
   badgeEl.textContent = cfg.label;
   badgeEl.className   = `track-status-badge ${cfg.class}`;
   subEl.textContent   = cfg.sub;
@@ -598,15 +467,15 @@ function updateTrackStatus(status) {
   if (status === "ready") triggerReadyAlert();
   if (['completed','rejected'].includes(status)) {
     setTimeout(() => {
-      document.getElementById('track-float').style.display = 'none';
+      const f = document.getElementById('track-float');
+      if (f) f.style.display = 'none';
     }, 5000);
   }
 }
 
 function triggerReadyAlert() {
   const screen = document.getElementById("track");
-  screen.classList.add("ready-flash");
-  setTimeout(() => screen.classList.remove("ready-flash"), 2000);
+  if (screen) { screen.classList.add("ready-flash"); setTimeout(() => screen.classList.remove("ready-flash"), 2000); }
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const notes = [523, 659, 784, 1047];
@@ -626,48 +495,32 @@ function triggerReadyAlert() {
 }
 
 // ══ AUTH SHEET ══
-function openAuthSheet() {
-  document.getElementById('auth-overlay').classList.add('open');
-}
-function closeAuthSheet() {
-  document.getElementById('auth-overlay').classList.remove('open');
-}
+function openAuthSheet() { document.getElementById('auth-overlay').classList.add('open'); }
+function closeAuthSheet() { document.getElementById('auth-overlay').classList.remove('open'); }
 window.closeAuthOutside = function(e) {
   if (e.target === document.getElementById('auth-overlay')) closeAuthSheet();
 }
-
 window.switchAuthMethod = function(method) {
   document.getElementById('auth-email-section').style.display = method === 'email' ? 'block' : 'none';
   document.getElementById('auth-phone-section').style.display = method === 'phone' ? 'block' : 'none';
   document.getElementById('method-email').classList.toggle('active', method === 'email');
   document.getElementById('method-phone').classList.toggle('active', method === 'phone');
 }
-
 window.switchEmailTab = function(tab) {
   document.getElementById('email-login-form').style.display  = tab === 'login'  ? 'block' : 'none';
   document.getElementById('email-signup-form').style.display = tab === 'signup' ? 'block' : 'none';
-  document.getElementById('etab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('etab-login').classList.toggle('active',  tab === 'login');
   document.getElementById('etab-signup').classList.toggle('active', tab === 'signup');
 }
-
-// EMAIL LOGIN
 window.handleEmailLogin = async function() {
   const email = document.getElementById('el-email').value.trim();
   const pass  = document.getElementById('el-password').value;
   const errEl = document.getElementById('el-error');
   if (!email || !pass) { errEl.textContent = 'Please fill in all fields.'; return; }
-  setAuthLoading('el-btn', true);
-  errEl.textContent = '';
-  try {
-    await customerSignIn(email, pass);
-    closeAuthSheet();
-  } catch(e) {
-    errEl.textContent = friendlyAuthError(e.code);
-    setAuthLoading('el-btn', false);
-  }
+  setAuthLoading('el-btn', true); errEl.textContent = '';
+  try { await customerSignIn(email, pass); closeAuthSheet(); }
+  catch(e) { errEl.textContent = friendlyAuthError(e.code); setAuthLoading('el-btn', false); }
 }
-
-// EMAIL SIGNUP
 window.handleEmailSignup = async function() {
   const name  = document.getElementById('es-name').value.trim();
   const phone = document.getElementById('es-phone').value.trim();
@@ -678,18 +531,10 @@ window.handleEmailSignup = async function() {
   if (!phone)        { errEl.textContent = 'Please enter your phone number.'; return; }
   if (!email)        { errEl.textContent = 'Please enter your email.'; return; }
   if (pass.length<6) { errEl.textContent = 'Password must be at least 6 characters.'; return; }
-  setAuthLoading('es-btn', true);
-  errEl.textContent = '';
-  try {
-    await customerSignUp(email, pass, name, phone);
-    closeAuthSheet();
-  } catch(e) {
-    errEl.textContent = friendlyAuthError(e.code);
-    setAuthLoading('es-btn', false);
-  }
+  setAuthLoading('es-btn', true); errEl.textContent = '';
+  try { await customerSignUp(email, pass, name, phone); closeAuthSheet(); }
+  catch(e) { errEl.textContent = friendlyAuthError(e.code); setAuthLoading('es-btn', false); }
 }
-
-// FORGOT PASSWORD
 window.handleAuthForgotPassword = async function() {
   const email = document.getElementById('el-email').value.trim();
   const errEl = document.getElementById('el-error');
@@ -698,54 +543,37 @@ window.handleAuthForgotPassword = async function() {
     await resetPassword(email);
     errEl.style.color = 'var(--lime)';
     errEl.textContent = '✅ Reset email sent — check your inbox.';
-  } catch(e) {
-    errEl.style.color = '';
-    errEl.textContent = friendlyAuthError(e.code);
-  }
+  } catch(e) { errEl.style.color = ''; errEl.textContent = friendlyAuthError(e.code); }
 }
-
-// PHONE OTP
 window.handleSendOTP = async function() {
   const phone = document.getElementById('ph-number').value.trim();
   const errEl = document.getElementById('ph-error');
   if (!phone) { errEl.textContent = 'Please enter your phone number.'; return; }
-  setAuthLoading('ph-btn', true);
-  errEl.textContent = '';
+  setAuthLoading('ph-btn', true); errEl.textContent = '';
   try {
     otpConfirmation = await sendOTP(phone, 'recaptcha-container');
     document.getElementById('phone-step-1').style.display = 'none';
     document.getElementById('phone-step-2').style.display = 'block';
-  } catch(e) {
-    errEl.textContent = 'Error sending OTP: ' + e.message;
-    setAuthLoading('ph-btn', false);
-  }
+  } catch(e) { errEl.textContent = 'Error sending OTP: ' + e.message; setAuthLoading('ph-btn', false); }
 }
-
 window.handleVerifyOTP = async function() {
   const otp  = document.getElementById('ph-otp').value.trim();
   const name = document.getElementById('ph-name').value.trim();
   const errEl = document.getElementById('ph-otp-error');
   if (!otp)  { errEl.textContent = 'Please enter the OTP.'; return; }
   if (!name) { errEl.textContent = 'Please enter your name.'; return; }
-  setAuthLoading('ph-otp-btn', true);
-  errEl.textContent = '';
+  setAuthLoading('ph-otp-btn', true); errEl.textContent = '';
   try {
     const result = await otpConfirmation.confirm(otp);
     const phone = document.getElementById('ph-number').value.trim();
     await savePhoneProfile(result.user.uid, name, phone);
     closeAuthSheet();
-  } catch(e) {
-    errEl.textContent = 'Invalid OTP. Please try again.';
-    setAuthLoading('ph-otp-btn', false);
-  }
+  } catch(e) { errEl.textContent = 'Invalid OTP. Please try again.'; setAuthLoading('ph-otp-btn', false); }
 }
 
 // ══ PROFILE SHEET ══
 window.openProfileSheet = function() {
-  if (!currentUser) {
-    openAuthSheet();
-    return;
-  }
+  if (!currentUser) { openAuthSheet(); return; }
   document.getElementById('profile-overlay').classList.add('open');
 }
 window.closeProfileOutside = function(e) {
@@ -768,13 +596,12 @@ window.openOrderHistory = async function() {
     const orders = await getOrderHistory(currentUser.uid);
     subEl.textContent = `${orders.length} order${orders.length !== 1 ? 's' : ''}`;
     if (!orders.length) {
-      listEl.innerHTML = `<div class="history-empty">
-        <span class="history-empty-icon">🧾</span>
+      listEl.innerHTML = `<div class="history-empty"><span class="history-empty-icon">🧾</span>
         <p>No orders yet.<br>Place your first order!</p></div>`;
       return;
     }
     listEl.innerHTML = orders.map((o, i) => {
-      const date = o.createdAt ? formatDate(o.createdAt.toDate()) : '—';
+      const date  = o.createdAt ? formatDate(o.createdAt.toDate()) : '—';
       const items = (o.items||[]).map(it => `${it.qty}× ${it.name}`).join(', ');
       return `
         <div class="history-order-card" style="animation-delay:${i*0.05}s">
@@ -792,11 +619,10 @@ window.openOrderHistory = async function() {
     }).join('');
   } catch(e) {
     const url = e.message.match(/https:\/\/\S+/)?.[0];
-    if(url) prompt('Copy this URL to create the index:', url);
+    if (url) prompt('Copy this URL to create the index:', url);
     listEl.innerHTML = `<div class="history-empty"><p>Error loading orders.<br>${e.message}</p></div>`;
   }
 }
-
 window.closeHistoryOutside = function(e) {
   if (e.target === document.getElementById('history-overlay'))
     document.getElementById('history-overlay').classList.remove('open');
@@ -807,66 +633,33 @@ function showLoading(containerId) {
   const el = document.getElementById(containerId);
   if (el) el.innerHTML = `<div class="loading-state">Loading…</div>`;
 }
-
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
-
 function goHome(pushHistory = true) {
   if (pushHistory) pushRoute(null);
   showScreen("home");
-  activeBiz = null;
-  activeMenu = [];
-  const float = document.getElementById('track-float');
-  if (float && float.style.display === 'flex') {
-    float.style.display = 'flex';
-  } else {
-    float.style.display = 'none';
+  // Keep float button visible if there's an active order
+  if (unsubscribeOrder) {
+    document.getElementById('track-float').style.display = 'flex';
   }
   window.scrollTo(0, 0);
 }
-
 async function startOver() {
-  // 🛑 stop live order listener
-  if (unsubscribeOrder) {
-    unsubscribeOrder();
-    unsubscribeOrder = null;
-  }
-
-  // 🧹 reset app state
-  activeBiz = null;
-  activeMenu = [];
-  cart = [];
-
+  if (unsubscribeOrder) { unsubscribeOrder(); unsubscribeOrder = null; }
+  activeBiz = null; activeMenu = []; cart = [];
   updateCartCount();
-
-  // ☁️ clear cart in DB
-  if (currentUser) {
-    await clearCart(currentUser.uid);
-  }
-
-  // 🔍 clear search
+  if (currentUser) await clearCart(currentUser.uid);
   const input = document.getElementById("search-input");
   if (input) input.value = "";
-
-  // 🧾 reset tracking UI
   const float = document.getElementById("track-float");
   if (float) float.style.display = "none";
-
   showScreen("home");
   window.scrollTo(0, 0);
 }
-}
-// Safe navigation home — does NOT clear cart
-function resetApp() {
-  goHome();
-}
-
-function showTrackFromFloat() {
-  showScreen('track');
-  window.scrollTo(0, 0);
-}
+function resetApp() { goHome(); }
+function showTrackFromFloat() { showScreen('track'); window.scrollTo(0, 0); }
 
 function setAuthLoading(btnId, loading) {
   const btn = document.getElementById(btnId);
@@ -874,27 +667,22 @@ function setAuthLoading(btnId, loading) {
   if (loading) { btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>'; }
   else {
     btn.disabled = false;
-    const labels = {
-      'el-btn': 'LOGIN', 'es-btn': 'CREATE ACCOUNT',
-      'ph-btn': 'SEND OTP', 'ph-otp-btn': 'VERIFY & CONTINUE'
-    };
+    const labels = { 'el-btn':'LOGIN','es-btn':'CREATE ACCOUNT','ph-btn':'SEND OTP','ph-otp-btn':'VERIFY & CONTINUE' };
     btn.innerHTML = `<span>${labels[btnId] || 'CONTINUE'}</span>`;
   }
 }
-
 function friendlyAuthError(code) {
   const map = {
-    'auth/user-not-found':       'No account found with this email.',
-    'auth/wrong-password':       'Incorrect password.',
-    'auth/invalid-email':        'Invalid email address.',
-    'auth/email-already-in-use': 'An account with this email already exists.',
-    'auth/weak-password':        'Password is too weak.',
-    'auth/invalid-credential':   'Invalid email or password.',
-    'auth/too-many-requests':    'Too many attempts. Please try again later.',
+    'auth/user-not-found':'No account found with this email.',
+    'auth/wrong-password':'Incorrect password.',
+    'auth/invalid-email':'Invalid email address.',
+    'auth/email-already-in-use':'An account with this email already exists.',
+    'auth/weak-password':'Password is too weak.',
+    'auth/invalid-credential':'Invalid email or password.',
+    'auth/too-many-requests':'Too many attempts. Please try again later.',
   };
   return map[code] || 'Something went wrong. Please try again.';
 }
-
 function formatDate(date) {
   return date.toLocaleDateString('en-ZA', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 }
@@ -915,23 +703,19 @@ window.resetApp = resetApp;
 window.startOver = startOver;
 window.showTrackFromFloat = showTrackFromFloat;
 window.confirmClearCart = async function() {
-
   cart = [];
   updateCartCount();
-
-  if (currentUser) {
-    await clearCart(currentUser.uid);
-  }
+  if (currentUser) await clearCart(currentUser.uid);
   document.getElementById('conflict-overlay').classList.remove('open');
   if (window._pendingItem) {
     const item = window._pendingItem;
     window._pendingItem = null;
     addItem(item);
   }
-  appState.cart = cart;
-};
+}
 window.cancelConflict = function() {
   document.getElementById('conflict-overlay').classList.remove('open');
+  window._pendingItem = null;
   window._pendingBizSlug = null;
 }
 
