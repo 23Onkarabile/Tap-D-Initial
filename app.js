@@ -810,35 +810,52 @@ function enableSwipeToClose(overlayId, sheetSelector) {
   let startY = 0;
   let currentY = 0;
   let isDragging = false;
+  let lastY = 0;
+  let velocity = 0;
 
   sheet.addEventListener('touchstart', (e) => {
     startY = e.touches[0].clientY;
+    lastY = startY;
+    currentY = startY;
+    velocity = 0;
     isDragging = true;
     sheet.style.transition = 'none';
+    sheet.style.willChange = 'transform';
   }, { passive: true });
 
   sheet.addEventListener('touchmove', (e) => {
     if (!isDragging) return;
+    velocity = e.touches[0].clientY - lastY;
+    lastY = e.touches[0].clientY;
     currentY = e.touches[0].clientY;
     const diff = currentY - startY;
     if (diff > 0) {
-      sheet.style.transform = `translateY(${diff}px)`;
+      // Resistance effect when dragging
+      const resistance = diff * 0.65;
+      sheet.style.transform = `translateY(${resistance}px)`;
     }
   }, { passive: true });
 
   sheet.addEventListener('touchend', () => {
     isDragging = false;
-    sheet.style.transition = 'transform .3s cubic-bezier(.22,1,.36,1)';
+    sheet.style.transition = 'transform .35s cubic-bezier(.32,1.2,.32,1)';
     const diff = currentY - startY;
-    if (diff > 100) {
-      sheet.style.transform = 'translateY(100%)';
+    // Close if dragged far enough OR flicked fast
+    if (diff > 80 || velocity > 12) {
+      sheet.style.transform = 'translateY(110%)';
       setTimeout(() => {
         overlay.classList.remove('open');
         sheet.style.transform = '';
         sheet.style.transition = '';
-      }, 300);
+        sheet.style.willChange = '';
+      }, 350);
     } else {
-      sheet.style.transform = '';
+      // Snap back smoothly
+      sheet.style.transform = 'translateY(0)';
+      setTimeout(() => {
+        sheet.style.transition = '';
+        sheet.style.willChange = '';
+      }, 350);
     }
   });
 }
