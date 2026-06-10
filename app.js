@@ -119,7 +119,29 @@ async function persistCart() {
 }
 
 // ══ ACTIVE ORDER PERSISTENCE ══
-
+async function restoreActiveOrder() {
+  if (!currentUser) return;
+  try {
+    const order = await getActiveOrder(currentUser.uid);
+    if (!order) return;
+    currentActiveOrder = order;
+    updateOrdersBadge();
+    if (unsubscribeOrder) { unsubscribeOrder(); unsubscribeOrder = null; }
+    unsubscribeOrder = subscribeToOrder(order.id, (updated) => {
+      currentActiveOrder = { ...currentActiveOrder, status: updated.status };
+      updateOrdersBadge();
+      updateActiveOrderCard();
+      if (['completed','rejected'].includes(updated.status)) {
+        if (currentUser) clearActiveOrder(currentUser.uid);
+        setTimeout(() => {
+          currentActiveOrder = null;
+          updateOrdersBadge();
+          updateActiveOrderCard();
+        }, 5000);
+      }
+    });
+  } catch(e) { console.error('restoreActiveOrder:', e); }
+}
 
 // ══ HOME ══
 function renderBizCards(list) {
@@ -425,6 +447,8 @@ function showTrackScreen(order, navigate = true) {
     float.style.display = 'none';
   }
   if (navigate) { showScreen("track"); setTimeout(() => window.scrollTo(0, 0), 50); }
+}
+
 const STATUS_CONFIG = {
   pending:   { label: "⏳ Pending",           sub: "Your order has been received. Hang tight!",           class: "pending",   step: 1 },
   preparing: { label: "👨‍🍳 Being Prepared",   sub: "The kitchen is working on your order right now.",    class: "preparing", step: 2 },
