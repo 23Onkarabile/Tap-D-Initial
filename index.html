@@ -463,6 +463,11 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
   font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;
   cursor:pointer;transition:all .2s}
 .aoc-track-btn:hover{background:#d9ff40}
+  .orders-sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-top:20px}
+.sheet-x-btn{background:var(--glass);border:1px solid var(--border);border-radius:6px;
+  width:36px;height:36px;cursor:pointer;color:var(--grey);font-size:18px;
+  display:flex;align-items:center;justify-content:center;transition:all .2s}
+.sheet-x-btn:hover{color:var(--white);border-color:var(--white)}
 </style>
 </head>
 <body>
@@ -718,7 +723,10 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 <!-- PROFILE SHEET -->
 <div class="profile-overlay" id="profile-overlay" onclick="closeProfileOutside(event)">
   <div class="profile-sheet">
-    <div class="profile-drag"></div>
+    <div class="orders-sheet-head">
+  <div class="orders-sheet-title">PROFILE</div>
+  <button type="button" class="sheet-x-btn" onclick="document.getElementById('profile-overlay').classList.remove('open')">✕</button>
+    </div>
     <div class="profile-head">
       <div class="profile-avatar">👤</div>
       <div>
@@ -794,9 +802,10 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 <!-- ORDERS SHEET -->
 <div class="orders-overlay" id="orders-overlay" onclick="closeOrdersOutside(event)">
   <div class="orders-sheet">
-    <div class="orders-drag"></div>
-    <div class="orders-sheet-title">MY ORDERS</div>
-
+    <div class="orders-sheet-head">
+  <div class="orders-sheet-title">MY ORDERS</div>
+  <button type="button" class="sheet-x-btn" onclick="document.getElementById('orders-overlay').classList.remove('open')">✕</button>
+    </div>
     <!-- ACTIVE ORDER SECTION -->
     <div id="active-order-section" style="display:none">
       <div class="orders-section-label">ACTIVE ORDER</div>
