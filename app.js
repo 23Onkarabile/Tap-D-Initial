@@ -418,7 +418,7 @@ function showTrackScreen(order, navigate = true) {
   const float = document.getElementById('track-float');
   if (!['completed','rejected'].includes(order.status)) {
     float.style.display = 'flex';
-    document.getElementById('track-float-num').textContent = order.orderNumber;
+    
   } else {
     float.style.display = 'none';
   }
@@ -449,12 +449,6 @@ function updateTrackStatus(status) {
     if (cfg.step > step)  el.classList.add("done");
   });
   if (status === "ready") triggerReadyAlert();
-  if (['completed','rejected'].includes(status)) {
-    setTimeout(() => {
-      const f = document.getElementById('track-float');
-      if (f) f.style.display = 'none';
-    }, 5000);
-  }
 }
 
 function triggerReadyAlert() {
@@ -626,7 +620,7 @@ function goHome(pushHistory = true) {
   showScreen("home");
   // Keep float button visible if there's an active order
   if (unsubscribeOrder) {
-    document.getElementById('track-float').style.display = 'flex';
+    
   }
   window.scrollTo(0, 0);
 }
@@ -637,8 +631,6 @@ async function startOver() {
   if (currentUser) await clearCart(currentUser.uid);
   const input = document.getElementById("search-input");
   if (input) input.value = "";
-  const float = document.getElementById("track-float");
-  if (float) float.style.display = "none";
   showScreen("home");
   window.scrollTo(0, 0);
 }
