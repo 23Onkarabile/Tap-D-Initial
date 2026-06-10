@@ -388,7 +388,9 @@ window.confirmCustomerDetails = async function() {
     document.getElementById("cart-overlay").classList.remove("open");
     cart = [];
     updateCartCount();
-    showTrackScreen(order, true);
+    currentActiveOrder = order;
+updateOrdersBadge();
+showTrackScreen(order, true);
     if (unsubscribeOrder) { unsubscribeOrder(); unsubscribeOrder = null; }
     unsubscribeOrder = subscribeToOrder(order.id, async (updated) => {
       updateTrackStatus(updated.status);
