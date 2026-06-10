@@ -835,8 +835,6 @@ function enableSwipeToClose(overlayId, sheetSelector) {
     currentY = startY;
     velocity = 0;
     isDragging = true;
-    sheet.style.transition = 'none';
-    sheet.style.willChange = 'transform';
   }, { passive: true });
 
   sheet.addEventListener('touchmove', (e) => {
@@ -845,8 +843,11 @@ function enableSwipeToClose(overlayId, sheetSelector) {
     lastY = e.touches[0].clientY;
     currentY = e.touches[0].clientY;
     const diff = currentY - startY;
-    if (diff > 0) {
-      // Resistance effect when dragging
+
+    // Only drag down if sheet is scrolled to top
+    if (diff > 0 && sheet.scrollTop === 0) {
+      sheet.style.transition = 'none';
+      sheet.style.willChange = 'transform';
       const resistance = diff * 0.65;
       sheet.style.transform = `translateY(${resistance}px)`;
     }
@@ -854,10 +855,10 @@ function enableSwipeToClose(overlayId, sheetSelector) {
 
   sheet.addEventListener('touchend', () => {
     isDragging = false;
-    sheet.style.transition = 'transform .35s cubic-bezier(.32,1.2,.32,1)';
     const diff = currentY - startY;
-    // Close if dragged far enough OR flicked fast
+
     if (diff > 80 || velocity > 12) {
+      sheet.style.transition = 'transform .35s cubic-bezier(.32,1.2,.32,1)';
       sheet.style.transform = 'translateY(110%)';
       setTimeout(() => {
         overlay.classList.remove('open');
@@ -866,7 +867,7 @@ function enableSwipeToClose(overlayId, sheetSelector) {
         sheet.style.willChange = '';
       }, 350);
     } else {
-      // Snap back smoothly
+      sheet.style.transition = 'transform .35s cubic-bezier(.32,1.2,.32,1)';
       sheet.style.transform = 'translateY(0)';
       setTimeout(() => {
         sheet.style.transition = '';
@@ -876,12 +877,6 @@ function enableSwipeToClose(overlayId, sheetSelector) {
   });
 }
 
-// Apply to all sheets
-enableSwipeToClose('cart-overlay', '.cart-sheet');
-enableSwipeToClose('auth-overlay', '.auth-sheet');
-enableSwipeToClose('profile-overlay', '.profile-sheet');
-enableSwipeToClose('orders-overlay', '.orders-sheet');
-enableSwipeToClose('history-overlay', '.history-sheet');
 
 init();
 
