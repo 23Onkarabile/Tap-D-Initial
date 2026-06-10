@@ -468,6 +468,15 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
   width:36px;height:36px;cursor:pointer;color:var(--grey);font-size:18px;
   display:flex;align-items:center;justify-content:center;transition:all .2s}
 .sheet-x-btn:hover{color:var(--white);border-color:var(--white)}
+
+  .track-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);
+  z-index:450;backdrop-filter:blur(6px)}
+.track-overlay.open{display:flex;align-items:flex-end;justify-content:center}
+.track-sheet{background:var(--dark);width:100%;max-width:600px;
+  border-radius:18px 18px 0 0;padding:20px 28px 48px;max-height:88vh;
+  overflow-y:auto;animation:sheetUp .38s cubic-bezier(.22,1,.36,1);
+  border-top:1px solid var(--border);border-left:1px solid var(--border);
+  border-right:1px solid var(--border)}
 </style>
 </head>
 <body>
@@ -551,10 +560,14 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 </div>
 
 <!-- TRACK ORDER -->
-<div id="track" class="screen">
-  <div class="ready-banner" id="ready-banner">🔔 YOUR ORDER IS READY — COME COLLECT IT NOW!</div>
-  <nav class="top-nav">
-  <div class="track-screen">
+<!-- TRACK ORDER SHEET -->
+<div class="ready-banner" id="ready-banner">🔔 YOUR ORDER IS READY — COME COLLECT IT NOW!</div>
+<div class="track-overlay" id="track-overlay">
+  <div class="track-sheet">
+    <div class="orders-sheet-head">
+      <div class="orders-sheet-title">TRACK ORDER</div>
+      <button type="button" class="sheet-x-btn" onclick="document.getElementById('track-overlay').classList.remove('open')">✕</button>
+    </div>
     <div class="track-order-num" id="track-order-num">—</div>
     <div class="track-biz" id="track-biz-name">—</div>
     <div id="track-status-badge" class="track-status-badge pending">⏳ Pending</div>
@@ -581,7 +594,7 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
       <div class="track-row"><span class="t-label">Pickup in</span><span class="t-val" id="track-wait">—</span></div>
       <div class="track-row"><span class="t-label">Total</span><span class="t-val lime" id="track-total">—</span></div>
     </div>
-    <button type="button" class="home-btn" onclick="startOver();bottomNav('home')">BACK TO HOME</button>
+    <button type="button" class="home-btn" onclick="document.getElementById('track-overlay').classList.remove('open')">CLOSE</button>
   </div>
 </div>
 
