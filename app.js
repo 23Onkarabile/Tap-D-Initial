@@ -448,12 +448,7 @@ function showTrackScreen(order, navigate = true) {
   updateTrackStatus(order.status || "pending");
   // Show float button only for active orders
   const float = document.getElementById('track-float');
-  if (!['completed','rejected'].includes(order.status)) {
-    float.style.display = 'flex';
-    
-  } else {
-    float.style.display = 'none';
-  }
+  
   if (navigate) { document.getElementById('track-overlay').classList.add('open'); }
 }
 
@@ -484,8 +479,8 @@ function updateTrackStatus(status) {
 }
 
 function triggerReadyAlert() {
-  const screen = document.getElementById("track");
-  if (screen) { screen.classList.add("ready-flash"); setTimeout(() => screen.classList.remove("ready-flash"), 2000); }
+  const sheet = document.getElementById("track-overlay");
+  if (sheet) { sheet.classList.add("ready-flash"); setTimeout(() => sheet.classList.remove("ready-flash"), 2000); }
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const notes = [523, 659, 784, 1047];
@@ -668,7 +663,7 @@ async function startOver() {
   window.scrollTo(0, 0);
 }
 function resetApp() { goHome(); }
-function showTrackFromFloat() { showScreen('track'); window.scrollTo(0, 0); }
+
 
 function setAuthLoading(btnId, loading) {
   const btn = document.getElementById(btnId);
@@ -710,7 +705,7 @@ window.placeOrder = submitOrder;
 window.goHome = goHome;
 window.resetApp = resetApp;
 window.startOver = startOver;
-window.showTrackFromFloat = showTrackFromFloat;
+
 window.confirmClearCart = async function() {
   cart = [];
   updateCartCount();
