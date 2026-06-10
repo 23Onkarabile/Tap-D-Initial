@@ -403,6 +403,66 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 
 .loading-state{color:var(--grey);padding:40px;text-align:center;font-size:14px}
 .error{color:var(--red);padding:20px;text-align:center;font-size:14px}
+  /* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:300;
+  display:flex;align-items:center;justify-content:space-around;
+  background:rgba(17,17,17,0.96);backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);padding:10px 0 24px;height:72px}
+.bottom-nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:none;border:none;cursor:pointer;color:var(--grey);
+  font-family:'Syne',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:.5px;padding:6px 24px;border-radius:10px;
+  transition:all .2s;position:relative;text-transform:uppercase}
+.bottom-nav-btn:hover{color:var(--white)}
+.bottom-nav-btn.active{color:var(--lime)}
+.bottom-nav-btn.active svg{stroke:var(--lime)}
+.bnav-badge{position:absolute;top:2px;right:18px;width:8px;height:8px;
+  border-radius:50%;background:var(--lime);box-shadow:0 0 8px var(--lime);
+  animation:pulse 1.5s infinite}
+
+/* PUSH SCREENS UP so content isn't hidden behind bottom nav */
+.screen{padding-bottom:72px}
+
+/* ORDERS SHEET */
+.orders-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);
+  z-index:400;backdrop-filter:blur(6px)}
+.orders-overlay.open{display:flex;align-items:flex-end;justify-content:center}
+.orders-sheet{background:var(--dark);width:100%;max-width:600px;
+  border-radius:18px 18px 0 0;padding:0 28px 48px;max-height:88vh;
+  overflow-y:auto;animation:sheetUp .38s cubic-bezier(.22,1,.36,1);
+  border-top:1px solid var(--border);border-left:1px solid var(--border);
+  border-right:1px solid var(--border)}
+.orders-drag{width:36px;height:3px;background:var(--border);
+  border-radius:2px;margin:18px auto 24px}
+.orders-sheet-title{font-family:'Bebas Neue',sans-serif;font-size:32px;
+  letter-spacing:1px;margin-bottom:4px}
+.orders-section-label{font-size:11px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--grey);margin-bottom:12px}
+.orders-sheet-sub{color:var(--grey);font-size:13px;margin-bottom:16px}
+
+/* ACTIVE ORDER CARD */
+.active-order-card{background:var(--surface);border:1px solid var(--lime-border);
+  border-radius:14px;padding:20px;margin-bottom:8px}
+.aoc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.aoc-num{font-family:'Bebas Neue',sans-serif;font-size:22px;
+  letter-spacing:1px;color:var(--lime)}
+.aoc-biz{font-size:12px;color:var(--grey);margin-top:2px}
+.aoc-status-badge{padding:4px 12px;border-radius:4px;font-size:11px;
+  font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.aoc-status-badge.pending{background:var(--red-dim);color:var(--red)}
+.aoc-status-badge.preparing{background:var(--amber-dim);color:var(--amber)}
+.aoc-status-badge.ready{background:var(--lime-dim);color:var(--lime);animation:pulse .8s infinite}
+.aoc-status-badge.completed{background:rgba(100,100,100,.1);color:#888}
+.aoc-status-badge.rejected{background:var(--red-dim);color:var(--red)}
+.aoc-items{font-size:12px;color:var(--grey);margin-bottom:14px;line-height:1.6}
+.aoc-footer{display:flex;align-items:center;justify-content:space-between}
+.aoc-total{font-family:'Bebas Neue',sans-serif;font-size:20px;
+  letter-spacing:1px;color:var(--lime)}
+.aoc-track-btn{display:flex;align-items:center;gap:6px;background:var(--lime);
+  color:var(--black);border:none;border-radius:6px;padding:8px 16px;
+  font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;
+  cursor:pointer;transition:all .2s}
+.aoc-track-btn:hover{background:#d9ff40}
 </style>
 </head>
 <body>
@@ -412,7 +472,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   <nav>
     <div class="nav-logo">TAPDISH</div>
     <div class="nav-right">
-      <button type="button" class="profile-btn" id="profile-btn" onclick="openProfileSheet()" title="Account">👤</button>
+
       <button type="button" class="cart-btn" id="home-cart-btn" onclick="openCart()">
         <span>MY ORDER</span>
         <span class="cart-count" id="cart-count">0</span>
@@ -667,14 +727,24 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
       </div>
     </div>
     <div class="profile-section-title">Account</div>
-    <div class="profile-actions">
-      <button type="button" class="profile-action-btn" onclick="openOrderHistory()">
-        <span class="icon">🧾</span> Order History
-      </button>
-      <button type="button" class="profile-action-btn sign-out-btn" onclick="handleSignOut()">
-        <span class="icon">🚪</span> Sign Out
-      </button>
-    </div>
+<div class="profile-actions">
+  <button type="button" class="profile-action-btn" onclick="openEditProfile()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    Edit Profile
+  </button>
+  <button type="button" class="profile-action-btn" onclick="openMyAddress()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    My Address
+  </button>
+  <button type="button" class="profile-action-btn" onclick="openPayment()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    Payment
+  </button>
+  <button type="button" class="profile-action-btn sign-out-btn" onclick="handleSignOut()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Logout
+  </button>
+</div>
   </div>
 </div>
 
@@ -704,12 +774,58 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   </div>
 </div>
 
-<!-- FLOATING TRACK BUTTON -->
-<div class="track-float" id="track-float" onclick="showTrackFromFloat()" style="display:none">
-  <div class="track-float-dot"></div>
-  <span>TRACK MY ORDER</span>
-  <span class="track-float-num" id="track-float-num"></span>
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button type="button" class="bottom-nav-btn active" id="bnav-home" onclick="bottomNav('home')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+    <span>Home</span>
+  </button>
+  <button type="button" class="bottom-nav-btn" id="bnav-orders" onclick="bottomNav('orders')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+    <span>Orders</span>
+    <span class="bnav-badge" id="bnav-orders-badge" style="display:none"></span>
+  </button>
+  <button type="button" class="bottom-nav-btn" id="bnav-profile" onclick="bottomNav('profile')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span>Profile</span>
+  </button>
+</nav>
+
+<!-- ORDERS SHEET -->
+<div class="orders-overlay" id="orders-overlay" onclick="closeOrdersOutside(event)">
+  <div class="orders-sheet">
+    <div class="orders-drag"></div>
+    <div class="orders-sheet-title">MY ORDERS</div>
+
+    <!-- ACTIVE ORDER SECTION -->
+    <div id="active-order-section" style="display:none">
+      <div class="orders-section-label">ACTIVE ORDER</div>
+      <div class="active-order-card" id="active-order-card">
+        <div class="aoc-top">
+          <div>
+            <div class="aoc-num" id="aoc-num">—</div>
+            <div class="aoc-biz" id="aoc-biz">—</div>
+          </div>
+          <div class="aoc-status-badge" id="aoc-status"></div>
+        </div>
+        <div class="aoc-items" id="aoc-items">—</div>
+        <div class="aoc-footer">
+          <span class="aoc-total" id="aoc-total">—</span>
+          <button type="button" class="aoc-track-btn" onclick="viewActiveOrder()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+            TRACK
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY SECTION -->
+    <div class="orders-section-label" style="margin-top:20px">PAST ORDERS</div>
+    <div class="orders-sheet-sub" id="orders-sheet-sub">Your past orders</div>
+    <div id="orders-history-list"></div>
+  </div>
 </div>
+
 
 <script type="module" src="app.js"></script>
 </body>
