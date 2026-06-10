@@ -753,7 +753,11 @@ function updateActiveOrderCard() {
 
 window.viewActiveOrder = function() {
   document.getElementById('orders-overlay').classList.remove('open');
-  if (currentActiveOrder) showTrackScreen(currentActiveOrder, true);
+  if (currentActiveOrder) {
+    showScreen('track');
+    showTrackScreen(currentActiveOrder, false);
+    window.scrollTo(0, 0);
+  }
 }
 
 window.closeOrdersOutside = function(e) {
