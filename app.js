@@ -800,5 +800,55 @@ window.openPayment = function() {
   document.getElementById('profile-overlay').classList.remove('open');
   alert('Payment — coming soon!');
 }
+// ══ SWIPE TO CLOSE SHEETS ══
+function enableSwipeToClose(overlayId, sheetSelector) {
+  const overlay = document.getElementById(overlayId);
+  if (!overlay) return;
+  const sheet = overlay.querySelector(sheetSelector);
+  if (!sheet) return;
+
+  let startY = 0;
+  let currentY = 0;
+  let isDragging = false;
+
+  sheet.addEventListener('touchstart', (e) => {
+    startY = e.touches[0].clientY;
+    isDragging = true;
+    sheet.style.transition = 'none';
+  }, { passive: true });
+
+  sheet.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    currentY = e.touches[0].clientY;
+    const diff = currentY - startY;
+    if (diff > 0) {
+      sheet.style.transform = `translateY(${diff}px)`;
+    }
+  }, { passive: true });
+
+  sheet.addEventListener('touchend', () => {
+    isDragging = false;
+    sheet.style.transition = 'transform .3s cubic-bezier(.22,1,.36,1)';
+    const diff = currentY - startY;
+    if (diff > 100) {
+      sheet.style.transform = 'translateY(100%)';
+      setTimeout(() => {
+        overlay.classList.remove('open');
+        sheet.style.transform = '';
+        sheet.style.transition = '';
+      }, 300);
+    } else {
+      sheet.style.transform = '';
+    }
+  });
+}
+
+// Apply to all sheets
+enableSwipeToClose('cart-overlay', '.cart-sheet');
+enableSwipeToClose('auth-overlay', '.auth-sheet');
+enableSwipeToClose('profile-overlay', '.profile-sheet');
+enableSwipeToClose('orders-overlay', '.orders-sheet');
+enableSwipeToClose('history-overlay', '.history-sheet');
+
 init();
 
