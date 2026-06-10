@@ -816,67 +816,6 @@ window.openPayment = function() {
   document.getElementById('profile-overlay').classList.remove('open');
   alert('Payment — coming soon!');
 }
-// ══ SWIPE TO CLOSE SHEETS ══
-function enableSwipeToClose(overlayId, sheetSelector) {
-  const overlay = document.getElementById(overlayId);
-  if (!overlay) return;
-  const sheet = overlay.querySelector(sheetSelector);
-  if (!sheet) return;
-
-  let startY = 0;
-  let currentY = 0;
-  let isDragging = false;
-  let lastY = 0;
-  let velocity = 0;
-
-  sheet.addEventListener('touchstart', (e) => {
-    startY = e.touches[0].clientY;
-    lastY = startY;
-    currentY = startY;
-    velocity = 0;
-    isDragging = true;
-  }, { passive: true });
-
-  sheet.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-    velocity = e.touches[0].clientY - lastY;
-    lastY = e.touches[0].clientY;
-    currentY = e.touches[0].clientY;
-    const diff = currentY - startY;
-
-    // Only drag down if sheet is scrolled to top
-    if (diff > 0 && sheet.scrollTop === 0) {
-      sheet.style.transition = 'none';
-      sheet.style.willChange = 'transform';
-      const resistance = diff * 0.65;
-      sheet.style.transform = `translateY(${resistance}px)`;
-    }
-  }, { passive: true });
-
-  sheet.addEventListener('touchend', () => {
-    isDragging = false;
-    const diff = currentY - startY;
-
-    if (diff > 80 || velocity > 12) {
-      sheet.style.transition = 'transform .35s cubic-bezier(.32,1.2,.32,1)';
-      sheet.style.transform = 'translateY(110%)';
-      setTimeout(() => {
-        overlay.classList.remove('open');
-        sheet.style.transform = '';
-        sheet.style.transition = '';
-        sheet.style.willChange = '';
-      }, 350);
-    } else {
-      sheet.style.transition = 'transform .35s cubic-bezier(.32,1.2,.32,1)';
-      sheet.style.transform = 'translateY(0)';
-      setTimeout(() => {
-        sheet.style.transition = '';
-        sheet.style.willChange = '';
-      }, 350);
-    }
-  });
-}
-
 
 init();
 
