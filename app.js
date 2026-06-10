@@ -415,9 +415,17 @@ updateOrdersBadge();
 showTrackScreen(order, true);
     if (unsubscribeOrder) { unsubscribeOrder(); unsubscribeOrder = null; }
     unsubscribeOrder = subscribeToOrder(order.id, async (updated) => {
+      currentActiveOrder = { ...currentActiveOrder, status: updated.status };
       updateTrackStatus(updated.status);
+      updateActiveOrderCard();
+      updateOrdersBadge();
       if (['completed','rejected'].includes(updated.status)) {
         if (currentUser) await clearActiveOrder(currentUser.uid);
+        setTimeout(() => {
+          currentActiveOrder = null;
+          updateOrdersBadge();
+          updateActiveOrderCard();
+        }, 5000);
       }
     });
   } catch(err) {
