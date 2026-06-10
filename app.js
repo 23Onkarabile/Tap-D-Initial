@@ -424,9 +424,7 @@ function showTrackScreen(order, navigate = true) {
   } else {
     float.style.display = 'none';
   }
-  if (navigate) { showScreen("track"); window.scrollTo(0, 0); }
-}
-
+  if (navigate) { showScreen("track"); setTimeout(() => window.scrollTo(0, 0), 50); }
 const STATUS_CONFIG = {
   pending:   { label: "⏳ Pending",           sub: "Your order has been received. Hang tight!",           class: "pending",   step: 1 },
   preparing: { label: "👨‍🍳 Being Prepared",   sub: "The kitchen is working on your order right now.",    class: "preparing", step: 2 },
