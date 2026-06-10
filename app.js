@@ -28,6 +28,7 @@ let pendingOrderData = null;
 let currentUser = null;
 let currentProfile = null;
 let otpConfirmation = null;
+let currentActiveOrder = null;
 let pendingCartAfterAuth = false;
 
 // ══ ROUTING ══
@@ -118,23 +119,7 @@ async function persistCart() {
 }
 
 // ══ ACTIVE ORDER PERSISTENCE ══
-async function restoreActiveOrder() {
-  if (!currentUser) return;
-  try {
-    const order = await getActiveOrder(currentUser.uid);
-    if (!order) return;
-    showTrackScreen(order, false);
-    document.getElementById('track-float').style.display = 'flex';
-    document.getElementById('track-float-num').textContent = order.orderNumber;
-    if (unsubscribeOrder) { unsubscribeOrder(); unsubscribeOrder = null; }
-    unsubscribeOrder = subscribeToOrder(order.id, (updated) => {
-      updateTrackStatus(updated.status);
-      if (['completed','rejected'].includes(updated.status)) {
-        if (currentUser) clearActiveOrder(currentUser.uid);
-      }
-    });
-  } catch(e) { console.error('restoreActiveOrder:', e); }
-}
+
 
 // ══ HOME ══
 function renderBizCards(list) {
@@ -717,6 +702,111 @@ window.cancelConflict = function() {
   window._pendingItem = null;
   window._pendingBizSlug = null;
 }
+// ══ BOTTOM NAV ══
+window.bottomNav = function(tab) {
+  document.querySelectorAll('.bottom-nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('bnav-' + tab).classList.add('active');
+  if (tab === 'home') {
+    document.getElementById('orders-overlay').classList.remove('open');
+    goHome();
+  } else if (tab === 'orders') {
+    openOrdersSheet();
+  } else if (tab === 'profile') {
+    document.getElementById('orders-overlay').classList.remove('open');
+    if (!currentUser) { openAuthSheet(); return; }
+    document.getElementById('profile-overlay').classList.add('open');
+  }
+}
 
+function updateOrdersBadge() {
+  const badge = document.getElementById('bnav-orders-badge');
+  if (!badge) return;
+  if (currentActiveOrder && !['completed','rejected'].includes(currentActiveOrder.status)) {
+    badge.style.display = 'block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function updateActiveOrderCard() {
+  const section = document.getElementById('active-order-section');
+  if (!section) return;
+  if (!currentActiveOrder || ['completed','rejected'].includes(currentActiveOrder.status)) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+  document.getElementById('aoc-num').textContent = currentActiveOrder.orderNumber || '—';
+  document.getElementById('aoc-biz').textContent = currentActiveOrder.businessName || '—';
+  document.getElementById('aoc-items').textContent = (currentActiveOrder.items || [])
+    .map(i => `${i.qty}× ${i.name}`).join(' · ');
+  document.getElementById('aoc-total').textContent = `$${(currentActiveOrder.total || 0).toFixed(2)}`;
+  const statusEl = document.getElementById('aoc-status');
+  const labels = { pending:'Pending', preparing:'Preparing', ready:'Ready!', completed:'Done', rejected:'Rejected' };
+  statusEl.textContent = labels[currentActiveOrder.status] || currentActiveOrder.status;
+  statusEl.className = 'aoc-status-badge ' + (currentActiveOrder.status || 'pending');
+}
+
+window.viewActiveOrder = function() {
+  document.getElementById('orders-overlay').classList.remove('open');
+  if (currentActiveOrder) showTrackScreen(currentActiveOrder, true);
+}
+
+window.closeOrdersOutside = function(e) {
+  if (e.target === document.getElementById('orders-overlay'))
+    document.getElementById('orders-overlay').classList.remove('open');
+}
+
+async function openOrdersSheet() {
+  document.getElementById('orders-overlay').classList.add('open');
+  updateActiveOrderCard();
+  const listEl = document.getElementById('orders-history-list');
+  const subEl = document.getElementById('orders-sheet-sub');
+  if (!currentUser) {
+    listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">🔒</span><p>Sign in to view your orders.</p></div>';
+    return;
+  }
+  listEl.innerHTML = '<div class="history-loading">Loading your orders…</div>';
+  try {
+    const orders = await getOrderHistory(currentUser.uid);
+    subEl.textContent = `${orders.length} order${orders.length !== 1 ? 's' : ''}`;
+    if (!orders.length) {
+      listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">🧾</span><p>No orders yet.<br>Place your first order!</p></div>';
+      return;
+    }
+    listEl.innerHTML = orders.map((o, i) => {
+      const date = o.createdAt ? formatDate(o.createdAt.toDate()) : '—';
+      const items = (o.items || []).map(it => `${it.qty}× ${it.name}`).join(', ');
+      return `<div class="history-order-card" style="animation-delay:${i * 0.05}s">
+        <div class="hoc-head">
+          <span class="hoc-num">${o.orderNumber || o.id.slice(0,8).toUpperCase()}</span>
+          <span class="hoc-date">${date}</span>
+        </div>
+        <div class="hoc-biz">${o.businessName || '—'}</div>
+        <div class="hoc-items">${items}</div>
+        <div class="hoc-foot">
+          <span class="hoc-total">$${(o.total || 0).toFixed(2)}</span>
+          <span class="hoc-status ${o.status}">${o.status}</span>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    listEl.innerHTML = `<div class="history-empty"><p>Error loading orders.<br>${e.message}</p></div>`;
+  }
+}
+
+// ══ PROFILE ACTIONS ══
+window.openEditProfile = function() {
+  document.getElementById('profile-overlay').classList.remove('open');
+  alert('Edit Profile — coming soon!');
+}
+window.openMyAddress = function() {
+  document.getElementById('profile-overlay').classList.remove('open');
+  alert('My Address — coming soon!');
+}
+window.openPayment = function() {
+  document.getElementById('profile-overlay').classList.remove('open');
+  alert('Payment — coming soon!');
+}
 init();
 
