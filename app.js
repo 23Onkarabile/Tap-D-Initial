@@ -446,7 +446,7 @@ function showTrackScreen(order, navigate = true) {
   } else {
     float.style.display = 'none';
   }
-  if (navigate) { showScreen("track"); setTimeout(() => window.scrollTo(0, 0), 50); }
+  if (navigate) { document.getElementById('track-overlay').classList.add('open'); }
 }
 
 const STATUS_CONFIG = {
@@ -776,9 +776,8 @@ function updateActiveOrderCard() {
 window.viewActiveOrder = function() {
   document.getElementById('orders-overlay').classList.remove('open');
   if (currentActiveOrder) {
-    showScreen('track');
     showTrackScreen(currentActiveOrder, false);
-    window.scrollTo(0, 0);
+    document.getElementById('track-overlay').classList.add('open');
   }
 }
 
