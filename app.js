@@ -1,5 +1,4 @@
 // app.js — Customer-facing app
-// app.js — Customer-facing app
 window.addEventListener("error", () => {
   const biz = document.getElementById("biz-list");
   if (biz && biz.innerHTML.includes("Loading")) {
