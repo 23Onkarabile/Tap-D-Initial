@@ -614,6 +614,7 @@ function showLoading(containerId) {
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
+  updateBottomNav(id);
 }
 function goHome(pushHistory = true) {
   if (pushHistory) pushRoute(null);
@@ -707,6 +708,15 @@ window.bottomNav = function(tab) {
     document.getElementById('orders-overlay').classList.remove('open');
     if (!currentUser) { openAuthSheet(); return; }
     document.getElementById('profile-overlay').classList.add('open');
+  }
+}
+
+function updateBottomNav(screenId) {
+  const homeBtn = document.getElementById('bnav-home');
+  if (screenId === 'home') {
+    homeBtn.style.display = 'none';
+  } else {
+    homeBtn.style.display = 'flex';
   }
 }
 
