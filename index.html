@@ -30,7 +30,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
 /* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;
+nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;
   justify-content:space-between;padding:0 28px;height:64px;
   background:rgba(10,10,10,0.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
 .nav-logo{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;color:var(--lime);line-height:1}
@@ -469,7 +469,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 
 <!-- HOME -->
 <div id="home" class="screen active">
-  <nav>
+  <nav class="top-nav">
     <div class="nav-logo">TAPDISH</div>
     <div class="nav-right">
 
@@ -515,7 +515,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 
 <!-- MENU -->
 <div id="menu" class="screen">
-  <nav>
+  <nav class="top-nav">
     <div class="nav-logo">TAPDISH</div>
     <div class="nav-right">
       <button type="button" class="back-btn" onclick="goHome()">← BACK</button>
@@ -548,7 +548,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 <!-- TRACK ORDER -->
 <div id="track" class="screen">
   <div class="ready-banner" id="ready-banner">🔔 YOUR ORDER IS READY — COME COLLECT IT NOW!</div>
-  <nav><div class="nav-logo">TAPDISH</div></nav>
+  <nav class="top-nav">
   <div class="track-screen">
     <div class="track-order-num" id="track-order-num">—</div>
     <div class="track-biz" id="track-biz-name">—</div>
