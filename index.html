@@ -477,6 +477,11 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
   overflow-y:auto;animation:sheetUp .38s cubic-bezier(.22,1,.36,1);
   border-top:1px solid var(--border);border-left:1px solid var(--border);
   border-right:1px solid var(--border)}
+  .orders-tabs{display:flex;gap:0;background:var(--black);border-radius:8px;padding:4px;margin-bottom:16px}
+.orders-tab{flex:1;padding:10px;text-align:center;font-size:12px;font-weight:700;
+  letter-spacing:.5px;cursor:pointer;border-radius:6px;transition:all .2s;
+  color:var(--grey);border:none;background:none;font-family:'Syne',sans-serif;text-transform:uppercase}
+.orders-tab.active{background:var(--surface);color:var(--white)}
 </style>
 </head>
 <body>
@@ -842,9 +847,13 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
     </div>
 
     <!-- HISTORY SECTION -->
-    <div class="orders-section-label" style="margin-top:20px">PAST ORDERS</div>
-    <div class="orders-sheet-sub" id="orders-sheet-sub">Your past orders</div>
-    <div id="orders-history-list"></div>
+    <!-- TABS -->
+<div class="orders-tabs">
+  <button class="orders-tab active" id="otab-processing" onclick="switchOrdersTab('processing')">Processing</button>
+  <button class="orders-tab" id="otab-past" onclick="switchOrdersTab('past')">Past Orders</button>
+</div>
+<div class="orders-sheet-sub" id="orders-sheet-sub"></div>
+<div id="orders-history-list"></div>
   </div>
 </div>
 
