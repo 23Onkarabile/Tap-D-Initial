@@ -791,55 +791,88 @@ window.closeOrdersOutside = function(e) {
     document.getElementById('orders-overlay').classList.remove('open');
 }
 
+let currentOrdersTab = 'processing';
+let cachedOrders = [];
+
 async function openOrdersSheet() {
   document.getElementById('orders-overlay').classList.add('open');
   updateActiveOrderCard();
-  const listEl = document.getElementById('orders-history-list');
-  const subEl = document.getElementById('orders-sheet-sub');
   if (!currentUser) {
-    listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">🔒</span><p>Sign in to view your orders.</p></div>';
+    document.getElementById('orders-history-list').innerHTML = '<div class="history-empty"><span class="history-empty-icon">🔒</span><p>Sign in to view your orders.</p></div>';
     return;
   }
-  listEl.innerHTML = '<div class="history-loading">Loading your orders…</div>';
+  document.getElementById('orders-history-list').innerHTML = '<div class="history-loading">Loading your orders…</div>';
   try {
-    const orders = await getOrderHistory(currentUser.uid);
+    cachedOrders = await getOrderHistory(currentUser.uid);
+    renderOrdersTab(currentOrdersTab);
+  } catch(e) {
+    document.getElementById('orders-history-list').innerHTML = `<div class="history-empty"><p>Error loading orders.<br>${e.message}</p></div>`;
+  }
+}
 
-    // Split into processing and completed
-    const processing = orders.filter(o =>
-      ['pending','preparing','ready'].includes(o.status) &&
-      (!currentActiveOrder || o.id !== currentActiveOrder.id)
-    );
-    const completed = orders.filter(o =>
-      ['completed','rejected'].includes(o.status)
-    );
+window.switchOrdersTab = function(tab) {
+  currentOrdersTab = tab;
+  document.getElementById('otab-processing').classList.toggle('active', tab === 'processing');
+  document.getElementById('otab-past').classList.toggle('active', tab === 'past');
+  renderOrdersTab(tab);
+}
 
-    if (!processing.length && !completed.length) {
-      listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">🧾</span><p>No orders yet.<br>Place your first order!</p></div>';
-      subEl.textContent = '0 orders';
+function renderOrdersTab(tab) {
+  const listEl = document.getElementById('orders-history-list');
+  const subEl = document.getElementById('orders-sheet-sub');
+
+  const processing = cachedOrders.filter(o =>
+    ['pending','preparing','ready'].includes(o.status) &&
+    (!currentActiveOrder || o.id !== currentActiveOrder.id)
+  );
+  const completed = cachedOrders.filter(o =>
+    ['completed','rejected'].includes(o.status)
+  );
+
+  if (tab === 'processing') {
+    subEl.textContent = `${processing.length} order${processing.length !== 1 ? 's' : ''}`;
+    if (!processing.length) {
+      listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">⏳</span><p>No orders processing.</p></div>';
       return;
     }
-
-    subEl.textContent = `${orders.length} order${orders.length !== 1 ? 's' : ''}`;
-
-    let html = '';
-
-    if (processing.length) {
-      html += `<div class="orders-section-label" style="margin-bottom:12px">PROCESSING</div>`;
-      html += processing.map((o, i) => {
-        const items = (o.items || []).map(it => `${it.qty}× ${it.name}`).join(', ');
-        return `<div class="history-order-card" style="border-color:var(--lime-border);animation-delay:${i * 0.05}s">
-          <div class="hoc-head">
-            <span class="hoc-num">${o.orderNumber || o.id.slice(0,8).toUpperCase()}</span>
-            <span class="hoc-status ${o.status}">${o.status}</span>
-          </div>
-          <div class="hoc-biz">${o.businessName || '—'}</div>
-          <div class="hoc-items">${items}</div>
-          <div class="hoc-foot">
-            <span class="hoc-total">$${(o.total || 0).toFixed(2)}</span>
-          </div>
-        </div>`;
-      }).join('');
+    listEl.innerHTML = processing.map((o, i) => {
+      const items = (o.items || []).map(it => `${it.qty}× ${it.name}`).join(', ');
+      return `<div class="history-order-card" style="border-color:var(--lime-border);animation-delay:${i * 0.05}s">
+        <div class="hoc-head">
+          <span class="hoc-num">${o.orderNumber || o.id.slice(0,8).toUpperCase()}</span>
+          <span class="hoc-status ${o.status}">${o.status}</span>
+        </div>
+        <div class="hoc-biz">${o.businessName || '—'}</div>
+        <div class="hoc-items">${items}</div>
+        <div class="hoc-foot">
+          <span class="hoc-total">$${(o.total || 0).toFixed(2)}</span>
+        </div>
+      </div>`;
+    }).join('');
+  } else {
+    subEl.textContent = `${completed.length} order${completed.length !== 1 ? 's' : ''}`;
+    if (!completed.length) {
+      listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">🧾</span><p>No past orders yet.</p></div>';
+      return;
     }
+    listEl.innerHTML = completed.map((o, i) => {
+      const date = o.createdAt ? formatDate(o.createdAt.toDate()) : '—';
+      const items = (o.items || []).map(it => `${it.qty}× ${it.name}`).join(', ');
+      return `<div class="history-order-card" style="animation-delay:${i * 0.05}s">
+        <div class="hoc-head">
+          <span class="hoc-num">${o.orderNumber || o.id.slice(0,8).toUpperCase()}</span>
+          <span class="hoc-date">${date}</span>
+        </div>
+        <div class="hoc-biz">${o.businessName || '—'}</div>
+        <div class="hoc-items">${items}</div>
+        <div class="hoc-foot">
+          <span class="hoc-total">$${(o.total || 0).toFixed(2)}</span>
+          <span class="hoc-status ${o.status}">${o.status}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
 
     if (completed.length) {
       html += `<div class="orders-section-label" style="margin-top:24px;margin-bottom:12px">PAST ORDERS</div>`;
