@@ -803,16 +803,15 @@ async function openOrdersSheet() {
   listEl.innerHTML = '<div class="history-loading">Loading your orders…</div>';
   try {
     const orders = await getOrderHistory(currentUser.uid);
-    console.log('Orders fetched:', orders);
-  listEl.innerHTML = '<div class="history-loading">Loading your orders…</div>';
-  try {
-    const orders = await getOrderHistory(currentUser.uid);
-    subEl.textContent = `${orders.length} order${orders.length !== 1 ? 's' : ''}`;
-    if (!orders.length) {
-      listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">🧾</span><p>No orders yet.<br>Place your first order!</p></div>';
+    const filteredOrders = orders.filter(o =>
+      !currentActiveOrder || o.id !== currentActiveOrder.id
+    );
+    subEl.textContent = `${filteredOrders.length} order${filteredOrders.length !== 1 ? 's' : ''}`;
+    if (!filteredOrders.length) {
+      listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">🧾</span><p>No past orders yet.</p></div>';
       return;
     }
-    listEl.innerHTML = orders.map((o, i) => {
+    listEl.innerHTML = filteredOrders.map((o, i) => {
       const date = o.createdAt ? formatDate(o.createdAt.toDate()) : '—';
       const items = (o.items || []).map(it => `${it.qty}× ${it.name}`).join(', ');
       return `<div class="history-order-card" style="animation-delay:${i * 0.05}s">
