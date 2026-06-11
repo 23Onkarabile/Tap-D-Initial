@@ -803,30 +803,65 @@ async function openOrdersSheet() {
   listEl.innerHTML = '<div class="history-loading">Loading your orders…</div>';
   try {
     const orders = await getOrderHistory(currentUser.uid);
-    const filteredOrders = orders.filter(o =>
-      !currentActiveOrder || o.id !== currentActiveOrder.id
+
+    // Split into processing and completed
+    const processing = orders.filter(o =>
+      ['pending','preparing','ready'].includes(o.status) &&
+      (!currentActiveOrder || o.id !== currentActiveOrder.id)
     );
-    subEl.textContent = `${filteredOrders.length} order${filteredOrders.length !== 1 ? 's' : ''}`;
-    if (!filteredOrders.length) {
-      listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">🧾</span><p>No past orders yet.</p></div>';
+    const completed = orders.filter(o =>
+      ['completed','rejected'].includes(o.status)
+    );
+
+    if (!processing.length && !completed.length) {
+      listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">🧾</span><p>No orders yet.<br>Place your first order!</p></div>';
+      subEl.textContent = '0 orders';
       return;
     }
-    listEl.innerHTML = filteredOrders.map((o, i) => {
-      const date = o.createdAt ? formatDate(o.createdAt.toDate()) : '—';
-      const items = (o.items || []).map(it => `${it.qty}× ${it.name}`).join(', ');
-      return `<div class="history-order-card" style="animation-delay:${i * 0.05}s">
-        <div class="hoc-head">
-          <span class="hoc-num">${o.orderNumber || o.id.slice(0,8).toUpperCase()}</span>
-          <span class="hoc-date">${date}</span>
-        </div>
-        <div class="hoc-biz">${o.businessName || '—'}</div>
-        <div class="hoc-items">${items}</div>
-        <div class="hoc-foot">
-          <span class="hoc-total">$${(o.total || 0).toFixed(2)}</span>
-          <span class="hoc-status ${o.status}">${o.status}</span>
-        </div>
-      </div>`;
-    }).join('');
+
+    subEl.textContent = `${orders.length} order${orders.length !== 1 ? 's' : ''}`;
+
+    let html = '';
+
+    if (processing.length) {
+      html += `<div class="orders-section-label" style="margin-bottom:12px">PROCESSING</div>`;
+      html += processing.map((o, i) => {
+        const items = (o.items || []).map(it => `${it.qty}× ${it.name}`).join(', ');
+        return `<div class="history-order-card" style="border-color:var(--lime-border);animation-delay:${i * 0.05}s">
+          <div class="hoc-head">
+            <span class="hoc-num">${o.orderNumber || o.id.slice(0,8).toUpperCase()}</span>
+            <span class="hoc-status ${o.status}">${o.status}</span>
+          </div>
+          <div class="hoc-biz">${o.businessName || '—'}</div>
+          <div class="hoc-items">${items}</div>
+          <div class="hoc-foot">
+            <span class="hoc-total">$${(o.total || 0).toFixed(2)}</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    if (completed.length) {
+      html += `<div class="orders-section-label" style="margin-top:24px;margin-bottom:12px">PAST ORDERS</div>`;
+      html += completed.map((o, i) => {
+        const date = o.createdAt ? formatDate(o.createdAt.toDate()) : '—';
+        const items = (o.items || []).map(it => `${it.qty}× ${it.name}`).join(', ');
+        return `<div class="history-order-card" style="animation-delay:${i * 0.05}s">
+          <div class="hoc-head">
+            <span class="hoc-num">${o.orderNumber || o.id.slice(0,8).toUpperCase()}</span>
+            <span class="hoc-date">${date}</span>
+          </div>
+          <div class="hoc-biz">${o.businessName || '—'}</div>
+          <div class="hoc-items">${items}</div>
+          <div class="hoc-foot">
+            <span class="hoc-total">$${(o.total || 0).toFixed(2)}</span>
+            <span class="hoc-status ${o.status}">${o.status}</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    listEl.innerHTML = html;
   } catch(e) {
     listEl.innerHTML = `<div class="history-empty"><p>Error loading orders.<br>${e.message}</p></div>`;
   }
