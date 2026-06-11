@@ -481,7 +481,10 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 .orders-tab{flex:1;padding:10px;text-align:center;font-size:12px;font-weight:700;
   letter-spacing:.5px;cursor:pointer;border-radius:6px;transition:all .2s;
   color:var(--grey);border:none;background:none;font-family:'Syne',sans-serif;text-transform:uppercase}
-.orders-tab.active{background:var(--surface);color:var(--white)}
+.orders-tab#otab-processing.active{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,.3)}
+.orders-tab#otab-past.active{background:var(--lime-dim);color:var(--lime);border:1px solid var(--lime-border)}
+.orders-tab#otab-processing:not(.active){color:var(--amber);opacity:0.5}
+.orders-tab#otab-past:not(.active){color:var(--lime);opacity:0.5}
 </style>
 </head>
 <body>
