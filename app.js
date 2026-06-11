@@ -801,6 +801,10 @@ async function openOrdersSheet() {
   listEl.innerHTML = '<div class="history-loading">Loading your orders…</div>';
   try {
     const orders = await getOrderHistory(currentUser.uid);
+    console.log('Orders fetched:', orders);
+  listEl.innerHTML = '<div class="history-loading">Loading your orders…</div>';
+  try {
+    const orders = await getOrderHistory(currentUser.uid);
     subEl.textContent = `${orders.length} order${orders.length !== 1 ? 's' : ''}`;
     if (!orders.length) {
       listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">🧾</span><p>No orders yet.<br>Place your first order!</p></div>';
