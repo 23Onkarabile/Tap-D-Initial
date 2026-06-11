@@ -447,7 +447,7 @@ function showTrackScreen(order, navigate = true) {
     (order.items||[]).map(i => `${i.qty}× ${i.name}`).join(" · ");
   updateTrackStatus(order.status || "pending");
   // Show float button only for active orders
-  const float = document.getElementById('track-float');
+  
   
   if (navigate) { document.getElementById('track-overlay').classList.add('open'); }
 }
@@ -874,32 +874,7 @@ function renderOrdersTab(tab) {
   }
 }
 
-    if (completed.length) {
-      html += `<div class="orders-section-label" style="margin-top:24px;margin-bottom:12px">PAST ORDERS</div>`;
-      html += completed.map((o, i) => {
-        const date = o.createdAt ? formatDate(o.createdAt.toDate()) : '—';
-        const items = (o.items || []).map(it => `${it.qty}× ${it.name}`).join(', ');
-        return `<div class="history-order-card" style="animation-delay:${i * 0.05}s">
-          <div class="hoc-head">
-            <span class="hoc-num">${o.orderNumber || o.id.slice(0,8).toUpperCase()}</span>
-            <span class="hoc-date">${date}</span>
-          </div>
-          <div class="hoc-biz">${o.businessName || '—'}</div>
-          <div class="hoc-items">${items}</div>
-          <div class="hoc-foot">
-            <span class="hoc-total">$${(o.total || 0).toFixed(2)}</span>
-            <span class="hoc-status ${o.status}">${o.status}</span>
-          </div>
-        </div>`;
-      }).join('');
-    }
-
-    listEl.innerHTML = html;
-  } catch(e) {
-    listEl.innerHTML = `<div class="history-empty"><p>Error loading orders.<br>${e.message}</p></div>`;
-  }
-}
-
+    
 // ══ PROFILE ACTIONS ══
 window.openEditProfile = function() {
   document.getElementById('profile-overlay').classList.remove('open');
