@@ -4,7 +4,19 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, on
 import { doc, getDoc, setDoc, updateDoc, collection, query, where,
   orderBy, onSnapshot, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const RENDER_BASE_URL = 'https://tap-d-initial-backend.onrender.com';
 
+async function callTapDishFunction(functionName, data) {
+  const idToken = await auth.currentUser.getIdToken();
+  const res = await fetch(`${RENDER_BASE_URL}/${functionName}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+    body: JSON.stringify({ data }),
+  });
+  const body = await res.json();
+  if (!res.ok) throw new Error(body.error?.message || 'Request failed.');
+  return body.result;
+}
 // ══ STATE ══
 let currentUser   = null;
 let currentBizId  = null;
@@ -194,10 +206,10 @@ function renderKanban(){
   });
 }
 
-// ══ UPDATE STATUS ══
+// ══ UPDATE STATUS  //
 window.updateStatus = async function(orderId, newStatus){
   try {
-    await updateDoc(doc(db, 'orders', orderId), { status: newStatus, updatedAt: serverTimestamp() });
+    await callTapDishFunction('vendorOrderUpdate', { orderId, newStatus });
     const labels = { preparing:'👨‍🍳 Now Preparing', ready:'✅ Ready for Pickup', completed:'🎉 Collected' };
     showToast(labels[newStatus] || 'Updated');
   } catch(e){ showToast('Error: ' + e.message, true); }
