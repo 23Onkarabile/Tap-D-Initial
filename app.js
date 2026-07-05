@@ -386,6 +386,7 @@ window.closeCustomerModal = function() {
 }
 
 window.confirmCustomerDetails = async function() {
+window.confirmCustomerDetails = async function() {
   const name  = document.getElementById("customer-name").value.trim();
   const phone = document.getElementById("customer-phone").value.trim();
   const errEl = document.getElementById("customer-modal-error");
@@ -402,32 +403,16 @@ window.confirmCustomerDetails = async function() {
       customerPhone: phone,
       customerId: currentUser ? currentUser.uid : null
     });
+
     if (currentUser) {
       await saveActiveOrder(currentUser.uid, order.id);
-      await clearCart(currentUser.uid);
     }
-    document.getElementById("customer-modal").classList.remove("open");
-    document.getElementById("cart-overlay").classList.remove("open");
-    cart = [];
-    updateCartCount();
-    currentActiveOrder = order;
-updateOrdersBadge();
-showTrackScreen(order, true);
-    if (unsubscribeOrder) { unsubscribeOrder(); unsubscribeOrder = null; }
-    unsubscribeOrder = subscribeToOrder(order.id, async (updated) => {
-      currentActiveOrder = { ...currentActiveOrder, status: updated.status };
-      updateTrackStatus(updated.status);
-      updateActiveOrderCard();
-      updateOrdersBadge();
-      if (['completed','rejected'].includes(updated.status)) {
-        if (currentUser) await clearActiveOrder(currentUser.uid);
-        setTimeout(() => {
-          currentActiveOrder = null;
-          updateOrdersBadge();
-          updateActiveOrderCard();
-        }, 5000);
-      }
-    });
+
+    // NEW: create the Stitch payment session and redirect to pay
+    document.getElementById("confirm-customer-btn").textContent = "Redirecting to payment…";
+    const paymentResult = await callTapDishFunction('createPaymentSession', { orderId: order.id });
+    window.location.href = paymentResult.checkoutUrl;
+
   } catch(err) {
     errEl.textContent = "Error: " + err.message;
     document.getElementById("confirm-customer-btn").disabled = false;
