@@ -1,14 +1,22 @@
 {
-  "name": "functions",
-  "description": "TapDish Firebase Functions — order creation and Yoco Checkout API integration",
-  "main": "index.js",
-  "engines": {
-    "node": "18"
+  "name": "tapdish-functions",
+  "description": "TapDish backend — Express server on Render",
+  "scripts": {
+    "start": "node server.js",
+    "lint": "eslint ."
   },
+  "engines": { "node": "20" },
+  "main": "server.js",
   "dependencies": {
     "firebase-admin": "^12.0.0",
-    "firebase-functions": "^4.8.0",
-    "axios": "^1.6.0"
+    "express": "^4.19.0",
+    "dotenv": "^16.4.0",
+    "axios": "^1.6.0",
+    "svix": "^1.35.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "eslint-config-google": "^0.14.0"
   },
   "private": true
 }
