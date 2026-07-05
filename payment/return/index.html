@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Confirmed — TapDish</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    .card { max-width: 360px; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(255,255,255,0.2);
+      border-top-color: #a3ff12;
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    h1 { font-size: 20px; margin-bottom: 8px; }
+    p { color: #999; font-size: 14px; line-height: 1.5; }
+    .error { color: #ff6b6b; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="spinner" id="spinner"></div>
+    <h1 id="status-title">Confirming your payment…</h1>
+    <p id="status-sub">Hang tight, this only takes a moment.</p>
+  </div>
+
+  <script type="module">
+    import { auth } from "/firebase.config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getActiveOrder } from "/firebase.service.js";
+
+    const titleEl = document.getElementById("status-title");
+    const subEl = document.getElementById("status-sub");
+    const spinnerEl = document.getElementById("spinner");
+
+    function showError(msg) {
+      spinnerEl.style.display = "none";
+      titleEl.textContent = "Something went wrong";
+      titleEl.classList.add("error");
+      subEl.textContent = msg;
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        showError("Please sign in to view your order.");
+        return;
+      }
+      try {
+        const order = await getActiveOrder(user.uid);
+        if (!order) {
+          showError("We couldn't find an active order. If you were charged, check your order history once you're back in the app.");
+          return;
+        }
+        window.location.href = "/";
+      } catch (err) {
+        showError("Error loading your order: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
