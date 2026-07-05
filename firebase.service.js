@@ -16,6 +16,20 @@ import {
   signInWithPhoneNumber
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
+// ══ RENDER BACKEND ══
+const RENDER_BASE_URL = 'https://tap-d-initial-backend.onrender.com';
+
+async function callTapDishFunction(functionName, data) {
+  const idToken = await currentUser.getIdToken();
+  const res = await fetch(`${RENDER_BASE_URL}/${functionName}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+    body: JSON.stringify({ data }),
+  });
+  const body = await res.json();
+  if (!res.ok) throw new Error(body.error?.message || 'Request failed.');
+  return body.result;
+}
 // ─────────────────────────────────────────────
 // BUSINESSES
 // ─────────────────────────────────────────────
