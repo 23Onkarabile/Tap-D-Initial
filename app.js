@@ -15,6 +15,8 @@ import {
   saveCart, loadCart, clearCart,
   saveActiveOrder, clearActiveOrder, getActiveOrder,
   getOrderHistory
+   getOrderHistory,
+  callTapDishFunction
 } from "./firebase.service.js";
 
 // \u2550\u2550 STATE \u2550\u2550
