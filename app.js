@@ -1,4 +1,4 @@
-// app.js — Customer-facing app
+// app.js \u2014 Customer-facing app
 window.addEventListener("error", () => {
   const biz = document.getElementById("biz-list");
   if (biz && biz.innerHTML.includes("Loading")) {
@@ -17,7 +17,7 @@ import {
   getOrderHistory
 } from "./firebase.service.js";
 
-// ══ STATE ══
+// \u2550\u2550 STATE \u2550\u2550
 let businesses = [];
 let cart = [];
 let activeBiz = null;
@@ -31,7 +31,7 @@ let otpConfirmation = null;
 let currentActiveOrder = null;
 let pendingCartAfterAuth = false;
 
-// ══ ROUTING ══
+// \u2550\u2550 ROUTING \u2550\u2550
 function resolveRoute() {
   const match = window.location.pathname.match(/\/business\/([^/]+)/);
   return match ? match[1] : null;
@@ -44,7 +44,7 @@ window.addEventListener("popstate", (e) => {
   slug ? openMenu(slug, false) : goHome(false);
 });
 
-// ══ INIT ══
+// \u2550\u2550 INIT \u2550\u2550
 async function init() {
   showLoading("biz-list");
 
@@ -67,18 +67,25 @@ async function init() {
     }
   });
 
-  unsubscribeBusinesses = subscribeToBusinesses((data) => {
-    businesses = data;
-    const openCount = data.filter(b => b.isOpen).length;
-    document.getElementById('open-count').textContent = openCount + ' OPEN NOW';
-    renderBizCards(businesses);
-  });
+ unsubscribeBusinesses = subscribeToBusinesses((data) => {
+  console.log("Businesses received:", data);
+
+  businesses = data;
+
+  const openCount = data.filter(b => b.isOpen).length;
+  console.log("Open count:", openCount);
+
+  document.getElementById('open-count').textContent = openCount + ' OPEN NOW';
+
+  console.log("Rendering cards...");
+  renderBizCards(businesses);
+});
 
   const routeSlug = resolveRoute();
   if (routeSlug) await openMenu(routeSlug, false);
 }
 
-// ══ PROFILE UI ══
+// \u2550\u2550 PROFILE UI \u2550\u2550
 function updateProfileUI() {
   const btn = document.getElementById('profile-btn');
   if (!btn) return;
@@ -88,16 +95,16 @@ function updateProfileUI() {
     btn.classList.add('logged-in');
     btn.title = currentProfile.name || currentUser.email;
     if (nameEl)  nameEl.textContent  = currentProfile.name  || 'Customer';
-    if (emailEl) emailEl.textContent = currentProfile.email || currentUser.phoneNumber || '—';
+    if (emailEl) emailEl.textContent = currentProfile.email || currentUser.phoneNumber || '\u2014';
   } else {
     btn.classList.remove('logged-in');
     btn.title = 'Account';
-    if (nameEl)  nameEl.textContent  = '—';
+    if (nameEl)  nameEl.textContent  = '\u2014';
     if (emailEl) emailEl.textContent = 'Not signed in';
   }
 }
 
-// ══ CART PERSISTENCE ══
+// \u2550\u2550 CART PERSISTENCE \u2550\u2550
 async function restoreCart() {
   if (!currentUser) return;
   try {
@@ -118,7 +125,7 @@ async function persistCart() {
   } catch(e) { console.error('persistCart:', e); }
 }
 
-// ══ ACTIVE ORDER PERSISTENCE ══
+// \u2550\u2550 ACTIVE ORDER PERSISTENCE \u2550\u2550
 async function restoreActiveOrder() {
   if (!currentUser) return;
   try {
@@ -143,7 +150,7 @@ async function restoreActiveOrder() {
   } catch(e) { console.error('restoreActiveOrder:', e); }
 }
 
-// ══ HOME ══
+// \u2550\u2550 HOME \u2550\u2550
 function renderBizCards(list) {
   const el = document.getElementById("biz-list");
   if (!list.length) {
@@ -159,17 +166,17 @@ function renderBizCards(list) {
           <div class="status-dot ${b.isOpen ? '' : 'closed'}"></div>
           ${b.isOpen ? "OPEN" : "CLOSED"}
         </div>
-        <div class="biz-rating-badge">⭐ ${b.rating}</div>
+        <div class="biz-rating-badge">\u2b50 ${b.rating}</div>
       </div>
       <div class="biz-body">
         <div class="biz-top">
           <div class="biz-name">${b.name}</div>
-          <div class="biz-arrow">→</div>
+          <div class="biz-arrow">\u2192</div>
         </div>
         <div class="biz-tags">${b.tags.map(t => `<span class="biz-tag">${t}</span>`).join("")}</div>
         <div class="biz-meta-row">
           <div class="biz-meta-item"><strong>${b.location}</strong>Location</div>
-          <div class="biz-meta-item"><strong>${b.estimatedWaitMin}–${b.estimatedWaitMax} min</strong>Wait time</div>
+          <div class="biz-meta-item"><strong>${b.estimatedWaitMin}\u2013${b.estimatedWaitMax} min</strong>Wait time</div>
           <div class="biz-meta-item"><strong>${b.reviewCount}</strong>Reviews</div>
         </div>
       </div>
@@ -184,7 +191,7 @@ function filterBiz() {
   ));
 }
 
-// ══ MENU ══
+// \u2550\u2550 MENU \u2550\u2550
 async function openMenu(bizSlug, pushHistory = true) {
   showLoading("menu-items");
   showScreen("menu");
@@ -198,7 +205,7 @@ async function openMenu(bizSlug, pushHistory = true) {
   document.getElementById("menu-biz-name").textContent = activeBiz.name;
   document.getElementById("menu-rating").textContent = activeBiz.rating;
   document.getElementById("menu-location").textContent = activeBiz.location;
-  document.getElementById("menu-time").textContent = `${activeBiz.estimatedWaitMin}–${activeBiz.estimatedWaitMax} min`;
+  document.getElementById("menu-time").textContent = `${activeBiz.estimatedWaitMin}\u2013${activeBiz.estimatedWaitMax} min`;
   activeMenu = await getMenu(bizSlug);
   document.getElementById("cat-nav").innerHTML = activeMenu.map((sec, i) =>
     `<button class="cat-pill ${i === 0 ? "active" : ""}" onclick="scrollToSec('${sec.category}',this)">${sec.category}</button>`
@@ -230,7 +237,7 @@ function renderItemHTML(item, delay) {
           ${qty === 0
             ? `<button class="add-btn" onclick='addItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>+</button>`
             : `<div class="item-qty">
-                <button class="qty-btn" onclick='changeQty("${item.id}",-1)'>−</button>
+                <button class="qty-btn" onclick='changeQty("${item.id}",-1)'>\u2212</button>
                 <span class="qty-num">${qty}</span>
                 <button class="qty-btn" onclick='changeQty("${item.id}",1)'>+</button>
               </div>`
@@ -258,7 +265,7 @@ function scrollToSec(cat, btn) {
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-// ══ CART ══
+// \u2550\u2550 CART \u2550\u2550
 function addItem(item) {
   // If cart has items from a different business show conflict modal
   if (cart.length > 0 && cart[0].bizId !== activeBiz.id) {
@@ -298,19 +305,19 @@ function openCart() {
   const bizEl    = document.getElementById("cart-biz-name");
   const orderBtn = document.getElementById("order-btn");
   if (cart.length === 0) {
-    listEl.innerHTML = `<div class="empty-cart"><span class="emoji">🍽</span><p>Your order is empty.<br>Add something good.</p></div>`;
+    listEl.innerHTML = `<div class="empty-cart"><span class="emoji">\ud83c\udf7d</span><p>Your order is empty.<br>Add something good.</p></div>`;
     totalEl.textContent = "$0.00";
-    bizEl.innerHTML = "—";
+    bizEl.innerHTML = "\u2014";
     orderBtn.disabled = true;
   } else {
     bizEl.innerHTML = `From <span>${cart[0].bizName}</span>`;
     listEl.innerHTML = cart.map(c => `
       <div class="cart-line">
         <div class="cart-line-left">
-          <div class="cart-line-name">${c.qty}× ${c.name}</div>
+          <div class="cart-line-name">${c.qty}\u00d7 ${c.name}</div>
           <div class="cart-line-price">$${(c.price * c.qty).toFixed(2)}</div>
         </div>
-        <button class="remove-btn" onclick='removeFromCart("${c.id}")'>✕</button>
+        <button class="remove-btn" onclick='removeFromCart("${c.id}")'>\u2715</button>
       </div>`).join("");
     totalEl.textContent = `$${cart.reduce((s, c) => s + c.price * c.qty, 0).toFixed(2)}`;
     orderBtn.disabled = false;
@@ -334,24 +341,24 @@ function closeCart() {
   document.getElementById("cart-overlay").classList.remove("open");
 }
 
-// ══ ORDER PLACEMENT ══
+// \u2550\u2550 ORDER PLACEMENT \u2550\u2550
 async function submitOrder() {
   if (!cart.length) return;
   const orderBtn = document.getElementById("order-btn");
   orderBtn.disabled = true;
-  orderBtn.textContent = "Almost there…";
+  orderBtn.textContent = "Almost there\u2026";
   closeCart();
   if (!currentUser) {
     pendingCartAfterAuth = true;
     openAuthSheet();
     orderBtn.disabled = false;
-    orderBtn.textContent = "PLACE ORDER · PICKUP";
+    orderBtn.textContent = "PLACE ORDER \u00b7 PICKUP";
     return;
   }
   openCustomerModal();
 }
 
-// ══ CUSTOMER DETAILS MODAL ══
+// \u2550\u2550 CUSTOMER DETAILS MODAL \u2550\u2550
 function openCustomerModal() {
   const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
   const items = cart.map(c => ({
@@ -362,7 +369,7 @@ function openCustomerModal() {
     businessId:   activeBiz ? activeBiz.id   : cart[0]?.bizId,
     businessName: activeBiz ? activeBiz.name : cart[0]?.bizName,
     items, total: +total.toFixed(2),
-    estimatedWait: activeBiz ? `${activeBiz.estimatedWaitMin}–${activeBiz.estimatedWaitMax} min` : '15 min',
+    estimatedWait: activeBiz ? `${activeBiz.estimatedWaitMin}\u2013${activeBiz.estimatedWaitMax} min` : '15 min',
   };
   const nameEl  = document.getElementById("customer-name");
   const phoneEl = document.getElementById("customer-phone");
@@ -382,7 +389,7 @@ window.closeCustomerModal = function() {
   document.getElementById("customer-modal").classList.remove("open");
   const btn = document.getElementById("order-btn");
   btn.disabled = false;
-  btn.textContent = "PLACE ORDER · PICKUP";
+  btn.textContent = "PLACE ORDER \u00b7 PICKUP";
 }
 
 window.confirmCustomerDetails = async function() {
@@ -395,7 +402,7 @@ window.confirmCustomerDetails = async function() {
   if (!/^[0-9+\s]{7,15}$/.test(phone)) { errEl.textContent = "Please enter a valid phone number."; return; }
   errEl.textContent = "";
   document.getElementById("confirm-customer-btn").disabled = true;
-  document.getElementById("confirm-customer-btn").textContent = "Placing order…";
+  document.getElementById("confirm-customer-btn").textContent = "Placing order\u2026";
   try {
     const order = await placeOrder({
       ...pendingOrderData,
@@ -409,7 +416,7 @@ window.confirmCustomerDetails = async function() {
     }
 
     // NEW: create the Stitch payment session and redirect to pay
-    document.getElementById("confirm-customer-btn").textContent = "Redirecting to payment…";
+    document.getElementById("confirm-customer-btn").textContent = "Redirecting to payment\u2026";
     const paymentResult = await callTapDishFunction('createPaymentSession', { orderId: order.id });
     window.location.href = paymentResult.checkoutUrl;
 
@@ -420,16 +427,16 @@ window.confirmCustomerDetails = async function() {
   }
 }
 
-// ══ TRACK ORDER SCREEN ══
+// \u2550\u2550 TRACK ORDER SCREEN \u2550\u2550
 function showTrackScreen(order, navigate = true) {
   document.getElementById("track-order-num").textContent = order.orderNumber;
   document.getElementById("track-biz-name").textContent = order.businessName;
-  document.getElementById("track-customer-name").textContent = order.customerName || "—";
-  document.getElementById("track-phone").textContent = order.customerPhone || "—";
-  document.getElementById("track-wait").textContent = order.estimatedWait || "—";
+  document.getElementById("track-customer-name").textContent = order.customerName || "\u2014";
+  document.getElementById("track-phone").textContent = order.customerPhone || "\u2014";
+  document.getElementById("track-wait").textContent = order.estimatedWait || "\u2014";
   document.getElementById("track-total").textContent = `$${(order.total||0).toFixed(2)}`;
   document.getElementById("track-items").textContent =
-    (order.items||[]).map(i => `${i.qty}× ${i.name}`).join(" · ");
+    (order.items||[]).map(i => `${i.qty}\u00d7 ${i.name}`).join(" \u00b7 ");
   updateTrackStatus(order.status || "pending");
   // Show float button only for active orders
   
@@ -438,11 +445,11 @@ function showTrackScreen(order, navigate = true) {
 }
 
 const STATUS_CONFIG = {
-  pending:   { label: "⏳ Pending",           sub: "Your order has been received. Hang tight!",           class: "pending",   step: 1 },
-  preparing: { label: "👨‍🍳 Being Prepared",   sub: "The kitchen is working on your order right now.",    class: "preparing", step: 2 },
-  ready:     { label: "🔔 Ready for Pickup!", sub: "Your order is ready — come collect it now!",          class: "ready",     step: 3 },
-  completed: { label: "🎉 Collected",          sub: "Thanks for ordering with TapDish. Enjoy your meal!", class: "completed", step: 4 },
-  rejected:  { label: "❌ Rejected",           sub: "Sorry, your order could not be fulfilled.",           class: "rejected",  step: 0 },
+  pending:   { label: "\u23f3 Pending",           sub: "Your order has been received. Hang tight!",           class: "pending",   step: 1 },
+  preparing: { label: "\ud83d\udc68\u200d\ud83c\udf73 Being Prepared",   sub: "The kitchen is working on your order right now.",    class: "preparing", step: 2 },
+  ready:     { label: "\ud83d\udd14 Ready for Pickup!", sub: "Your order is ready \u2014 come collect it now!",          class: "ready",     step: 3 },
+  completed: { label: "\ud83c\udf89 Collected",          sub: "Thanks for ordering with TapDish. Enjoy your meal!", class: "completed", step: 4 },
+  rejected:  { label: "\u274c Rejected",           sub: "Sorry, your order could not be fulfilled.",           class: "rejected",  step: 0 },
 };
 
 function updateTrackStatus(status) {
@@ -484,7 +491,7 @@ function triggerReadyAlert() {
   if (banner) { banner.classList.add("show"); setTimeout(() => banner.classList.remove("show"), 6000); }
 }
 
-// ══ AUTH SHEET ══
+// \u2550\u2550 AUTH SHEET \u2550\u2550
 function openAuthSheet() { document.getElementById('auth-overlay').classList.add('open'); }
 function closeAuthSheet() { document.getElementById('auth-overlay').classList.remove('open'); }
 window.closeAuthOutside = function(e) {
@@ -532,7 +539,7 @@ window.handleAuthForgotPassword = async function() {
   try {
     await resetPassword(email);
     errEl.style.color = 'var(--lime)';
-    errEl.textContent = '✅ Reset email sent — check your inbox.';
+    errEl.textContent = '\u2705 Reset email sent \u2014 check your inbox.';
   } catch(e) { errEl.style.color = ''; errEl.textContent = friendlyAuthError(e.code); }
 }
 window.handleSendOTP = async function() {
@@ -561,7 +568,7 @@ window.handleVerifyOTP = async function() {
   } catch(e) { errEl.textContent = 'Invalid OTP. Please try again.'; setAuthLoading('ph-otp-btn', false); }
 }
 
-// ══ PROFILE SHEET ══
+// \u2550\u2550 PROFILE SHEET \u2550\u2550
 window.openProfileSheet = function() {
   if (!currentUser) { openAuthSheet(); return; }
   document.getElementById('profile-overlay').classList.add('open');
@@ -575,13 +582,13 @@ window.handleSignOut = async function() {
   document.getElementById('profile-overlay').classList.remove('open');
 }
 
-// ══ ORDER HISTORY ══
+// \u2550\u2550 ORDER HISTORY \u2550\u2550
 window.openOrderHistory = async function() {
   document.getElementById('profile-overlay').classList.remove('open');
   document.getElementById('history-overlay').classList.add('open');
   const listEl = document.getElementById('history-list');
   const subEl  = document.getElementById('history-sheet-sub');
-  listEl.innerHTML = `<div class="history-loading">Loading your orders…</div>`;
+  listEl.innerHTML = `<div class="history-loading">Loading your orders\u2026</div>`;
   try {
     const orders = await getOrderHistory(currentUser.uid);
     subEl.textContent = `${orders.length} order${orders.length !== 1 ? 's' : ''}`;
@@ -590,18 +597,18 @@ window.openOrderHistory = async function() {
       !currentActiveOrder || o.id !== currentActiveOrder.id
     );
     if (!filteredOrders.length) {
-      listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">🧾</span><p>No past orders yet.</p></div>';
+      listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">\ud83e\uddfe</span><p>No past orders yet.</p></div>';
       return;
     }
     listEl.innerHTML = filteredOrders.map((o, i) => {
-      const date = o.createdAt ? formatDate(o.createdAt.toDate()) : '—';
-      const items = (o.items || []).map(it => `${it.qty}× ${it.name}`).join(', ');
+      const date = o.createdAt ? formatDate(o.createdAt.toDate()) : '\u2014';
+      const items = (o.items || []).map(it => `${it.qty}\u00d7 ${it.name}`).join(', ');
       return `<div class="history-order-card" style="animation-delay:${i * 0.05}s">
           <div class="hoc-head">
             <span class="hoc-num">${o.orderNumber || o.id.slice(0,8).toUpperCase()}</span>
             <span class="hoc-date">${date}</span>
           </div>
-          <div class="hoc-biz">${o.businessName || '—'}</div>
+          <div class="hoc-biz">${o.businessName || '\u2014'}</div>
           <div class="hoc-items">${items}</div>
           <div class="hoc-foot">
             <span class="hoc-total">$${(o.total||0).toFixed(2)}</span>
@@ -620,10 +627,10 @@ window.closeHistoryOutside = function(e) {
     document.getElementById('history-overlay').classList.remove('open');
 }
 
-// ══ HELPERS ══
+// \u2550\u2550 HELPERS \u2550\u2550
 function showLoading(containerId) {
   const el = document.getElementById(containerId);
-  if (el) el.innerHTML = `<div class="loading-state">Loading…</div>`;
+  if (el) el.innerHTML = `<div class="loading-state">Loading\u2026</div>`;
 }
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
@@ -678,7 +685,7 @@ function formatDate(date) {
   return date.toLocaleDateString('en-ZA', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 }
 
-// ══ EXPOSE ══
+// \u2550\u2550 EXPOSE \u2550\u2550
 window.openMenu = openMenu;
 window.filterBiz = filterBiz;
 window.openCart = openCart;
@@ -709,7 +716,7 @@ window.cancelConflict = function() {
   window._pendingItem = null;
   window._pendingBizSlug = null;
 }
-// ══ BOTTOM NAV ══
+// \u2550\u2550 BOTTOM NAV \u2550\u2550
 window.bottomNav = function(tab) {
   document.querySelectorAll('.bottom-nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('bnav-' + tab).classList.add('active');
@@ -752,10 +759,10 @@ function updateActiveOrderCard() {
     return;
   }
   section.style.display = 'block';
-  document.getElementById('aoc-num').textContent = currentActiveOrder.orderNumber || '—';
-  document.getElementById('aoc-biz').textContent = currentActiveOrder.businessName || '—';
+  document.getElementById('aoc-num').textContent = currentActiveOrder.orderNumber || '\u2014';
+  document.getElementById('aoc-biz').textContent = currentActiveOrder.businessName || '\u2014';
   document.getElementById('aoc-items').textContent = (currentActiveOrder.items || [])
-    .map(i => `${i.qty}× ${i.name}`).join(' · ');
+    .map(i => `${i.qty}\u00d7 ${i.name}`).join(' \u00b7 ');
   document.getElementById('aoc-total').textContent = `$${(currentActiveOrder.total || 0).toFixed(2)}`;
   const statusEl = document.getElementById('aoc-status');
   const labels = { pending:'Pending', preparing:'Preparing', ready:'Ready!', completed:'Done', rejected:'Rejected' };
@@ -783,10 +790,10 @@ async function openOrdersSheet() {
   document.getElementById('orders-overlay').classList.add('open');
   updateActiveOrderCard();
   if (!currentUser) {
-    document.getElementById('orders-history-list').innerHTML = '<div class="history-empty"><span class="history-empty-icon">🔒</span><p>Sign in to view your orders.</p></div>';
+    document.getElementById('orders-history-list').innerHTML = '<div class="history-empty"><span class="history-empty-icon">\ud83d\udd12</span><p>Sign in to view your orders.</p></div>';
     return;
   }
-  document.getElementById('orders-history-list').innerHTML = '<div class="history-loading">Loading your orders…</div>';
+  document.getElementById('orders-history-list').innerHTML = '<div class="history-loading">Loading your orders\u2026</div>';
   try {
     cachedOrders = await getOrderHistory(currentUser.uid);
     renderOrdersTab(currentOrdersTab);
@@ -817,17 +824,17 @@ function renderOrdersTab(tab) {
   if (tab === 'processing') {
     subEl.textContent = `${processing.length} order${processing.length !== 1 ? 's' : ''}`;
     if (!processing.length) {
-      listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">⏳</span><p>No orders processing.</p></div>';
+      listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">\u23f3</span><p>No orders processing.</p></div>';
       return;
     }
     listEl.innerHTML = processing.map((o, i) => {
-      const items = (o.items || []).map(it => `${it.qty}× ${it.name}`).join(', ');
+      const items = (o.items || []).map(it => `${it.qty}\u00d7 ${it.name}`).join(', ');
       return `<div class="history-order-card" style="border-color:var(--lime-border);animation-delay:${i * 0.05}s">
         <div class="hoc-head">
           <span class="hoc-num">${o.orderNumber || o.id.slice(0,8).toUpperCase()}</span>
           <span class="hoc-status ${o.status}">${o.status}</span>
         </div>
-        <div class="hoc-biz">${o.businessName || '—'}</div>
+        <div class="hoc-biz">${o.businessName || '\u2014'}</div>
         <div class="hoc-items">${items}</div>
         <div class="hoc-foot">
           <span class="hoc-total">$${(o.total || 0).toFixed(2)}</span>
@@ -837,18 +844,18 @@ function renderOrdersTab(tab) {
   } else {
     subEl.textContent = `${completed.length} order${completed.length !== 1 ? 's' : ''}`;
     if (!completed.length) {
-      listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">🧾</span><p>No past orders yet.</p></div>';
+      listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">\ud83e\uddfe</span><p>No past orders yet.</p></div>';
       return;
     }
     listEl.innerHTML = completed.map((o, i) => {
-      const date = o.createdAt ? formatDate(o.createdAt.toDate()) : '—';
-      const items = (o.items || []).map(it => `${it.qty}× ${it.name}`).join(', ');
+      const date = o.createdAt ? formatDate(o.createdAt.toDate()) : '\u2014';
+      const items = (o.items || []).map(it => `${it.qty}\u00d7 ${it.name}`).join(', ');
       return `<div class="history-order-card" style="animation-delay:${i * 0.05}s">
         <div class="hoc-head">
           <span class="hoc-num">${o.orderNumber || o.id.slice(0,8).toUpperCase()}</span>
           <span class="hoc-date">${date}</span>
         </div>
-        <div class="hoc-biz">${o.businessName || '—'}</div>
+        <div class="hoc-biz">${o.businessName || '\u2014'}</div>
         <div class="hoc-items">${items}</div>
         <div class="hoc-foot">
           <span class="hoc-total">$${(o.total || 0).toFixed(2)}</span>
@@ -860,18 +867,18 @@ function renderOrdersTab(tab) {
 }
 
     
-// ══ PROFILE ACTIONS ══
+// \u2550\u2550 PROFILE ACTIONS \u2550\u2550
 window.openEditProfile = function() {
   document.getElementById('profile-overlay').classList.remove('open');
-  alert('Edit Profile — coming soon!');
+  alert('Edit Profile \u2014 coming soon!');
 }
 window.openMyAddress = function() {
   document.getElementById('profile-overlay').classList.remove('open');
-  alert('My Address — coming soon!');
+  alert('My Address \u2014 coming soon!');
 }
 window.openPayment = function() {
   document.getElementById('profile-overlay').classList.remove('open');
-  alert('Payment — coming soon!');
+  alert('Payment \u2014 coming soon!');
 }
 
 init();
