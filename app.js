@@ -393,7 +393,6 @@ window.closeCustomerModal = function() {
 }
 
 window.confirmCustomerDetails = async function() {
-window.confirmCustomerDetails = async function() {
   const name  = document.getElementById("customer-name").value.trim();
   const phone = document.getElementById("customer-phone").value.trim();
   const errEl = document.getElementById("customer-modal-error");
