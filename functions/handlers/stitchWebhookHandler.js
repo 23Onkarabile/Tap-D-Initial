@@ -24,8 +24,8 @@ module.exports = async (req, res) => {
 
   console.log("Stitch Express webhook FULL payload:", JSON.stringify(payload));
 
-  if (payload.type !== "payment.paid") {
-    return res.status(200).send("Event type not handled.");
+  if (payload.status !== "PAID") {
+    return res.status(200).send("Payment status not handled.");
   }
 
   const linkId = payload.linkId;
@@ -104,8 +104,8 @@ module.exports = async (req, res) => {
         createdAt: FieldValue.serverTimestamp(),
       });
 
-      const restaurantRef = db.collection("restaurants").doc(order.restaurantId);
-      txn.update(restaurantRef, {
+      const businessRef = db.collection("businesses").doc(order.businessId);
+      txn.update(businessRef, {
         totalEarnings: FieldValue.increment(order.pricingSnapshot.restaurantPayout),
       });
 
