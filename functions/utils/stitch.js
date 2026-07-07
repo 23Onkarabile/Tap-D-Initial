@@ -37,10 +37,11 @@ async function getAccessToken() {
   let res;
   try {
     res = await axios.post(
-      `${BASE_URL}/token`,
+      `${BASE_URL}/api/v1/token`,
       {
-        client_id:     STITCH_CLIENT_ID.value(),
-        client_secret: STITCH_CLIENT_SECRET.value(),
+        clientId:     STITCH_CLIENT_ID.value(),
+        clientSecret: STITCH_CLIENT_SECRET.value(),
+        scope:        "client_paymentrequest",
       },
       {
         headers: { "Content-Type": "application/json" },
@@ -52,8 +53,14 @@ async function getAccessToken() {
     throw err;
   }
 
-  _cachedToken = res.data.token;
-  _tokenExpiry = now + (res.data.expiresIn || 900) * 1000;
+  const accessToken = res.data?.data?.accessToken;
+  if (!accessToken) {
+    throw new Error(`Stitch token response missing accessToken: ${JSON.stringify(res.data)}`);
+  }
+
+  _cachedToken = accessToken;
+  // Stitch tokens are valid for 15 minutes; no expiresIn field returned, so hardcode it.
+  _tokenExpiry = now + 15 * 60 * 1000;
   return _cachedToken;
 }
 
