@@ -97,7 +97,7 @@ module.exports = async (req, res) => {
         orderId,
         orderNumber: order.orderNumber,
         amountZAR: pricing.totalPayable,
-        redirectUrl: `${BASE_URL}/payment/return`,
+        payerName: order.customerName,
       });
     } catch (err) {
       await orderRef.update({
