@@ -14,8 +14,7 @@ import {
   sendOTP, savePhoneProfile,
   saveCart, loadCart, clearCart,
   saveActiveOrder, clearActiveOrder, getActiveOrder,
-  getOrderHistory
-   getOrderHistory,
+  getOrderHistory,
   callTapDishFunction
 } from "./firebase.service.js";
 
