@@ -19,6 +19,12 @@ const vendorOrderUpdate = require("./handlers/vendorOrderUpdate");
 const stitchWebhookHandler = require("./handlers/stitchWebhookHandler");
 
 const app = express();
+const cors = require("cors");
+app.use(cors({
+  origin: "https://tapdish.vercel.app",
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 
 // Webhook route needs the RAW body for Svix signature verification —
 // this must be registered BEFORE express.json() below.
