@@ -19,7 +19,9 @@ import {
 // ══ RENDER BACKEND ══
 const RENDER_BASE_URL = 'https://tap-d-initial-backend.onrender.com';
 
-export async function callTapDishFunction(functionName, data, user) {
+export async function callTapDishFunction(functionName, data) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('You must be signed in to do this.');
   const idToken = await user.getIdToken();
   const res = await fetch(`${RENDER_BASE_URL}/${functionName}`, {
     method: 'POST',
