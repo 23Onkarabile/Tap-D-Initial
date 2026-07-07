@@ -22,9 +22,7 @@ module.exports = async (req, res) => {
     return res.status(401).send("Invalid signature.");
   }
 
-  console.log("Stitch Express webhook received:", JSON.stringify({
-    type: payload.type, linkId: payload.linkId, id: payload.id,
-  }));
+  console.log("Stitch Express webhook FULL payload:", JSON.stringify(payload));
 
   if (payload.type !== "payment.paid") {
     return res.status(200).send("Event type not handled.");
