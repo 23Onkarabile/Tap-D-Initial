@@ -64,23 +64,28 @@ async function getAccessToken() {
 async function createPaymentLink({ orderId, orderNumber, amountZAR, redirectUrl }) {
   const token = await getAccessToken();
   const amountCents = Math.round(amountZAR * 100);
-
-  const res = await axios.post(
-    `${BASE_URL}/payment-links`,
-    {
-      amount:      amountCents,
-      reference:   orderNumber.slice(0, 50),
-      redirectUrl,
-      metadata: { orderId },
-    },
-    {
-      headers: {
-        Authorization:  `Bearer ${token}`,
-        "Content-Type": "application/json",
+  let res;
+  try {
+    res = await axios.post(
+      `${BASE_URL}/payment-links`,
+      {
+        amount:      amountCents,
+        reference:   orderNumber.slice(0, 50),
+        redirectUrl,
+        metadata: { orderId },
       },
-      timeout: 15_000,
-    }
-  );
+      {
+        headers: {
+          Authorization:  `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        timeout: 15_000,
+      }
+    );
+  } catch (err) {
+    console.error("Stitch payment-links raw error response:", JSON.stringify(err.response?.data));
+    throw err;
+  }
 
   if (!res.data || !res.data.id) {
     throw new Error(
@@ -93,6 +98,10 @@ async function createPaymentLink({ orderId, orderNumber, amountZAR, redirectUrl 
     url:    res.data.url,
   };
 }
+
+ 
+
+  
 // ── Webhook verification ──────────────────────────────────────────
 const WEBHOOK_MODE = (process.env.STITCH_WEBHOOK_MODE || "svix").toLowerCase();
 
