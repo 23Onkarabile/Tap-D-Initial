@@ -34,17 +34,23 @@ async function getAccessToken() {
     return _cachedToken;
   }
 
-  const res = await axios.post(
-    `${BASE_URL}/token`,
-    {
-      client_id:     STITCH_CLIENT_ID.value(),
-      client_secret: STITCH_CLIENT_SECRET.value(),
-    },
-    {
-      headers: { "Content-Type": "application/json" },
-      timeout: 10_000,
-    }
-  );
+  let res;
+  try {
+    res = await axios.post(
+      `${BASE_URL}/token`,
+      {
+        client_id:     STITCH_CLIENT_ID.value(),
+        client_secret: STITCH_CLIENT_SECRET.value(),
+      },
+      {
+        headers: { "Content-Type": "application/json" },
+        timeout: 10_000,
+      }
+    );
+  } catch (err) {
+    console.error("Stitch token request raw error response:", JSON.stringify(err.response?.data));
+    throw err;
+  }
 
   _cachedToken = res.data.token;
   _tokenExpiry = now + (res.data.expiresIn || 900) * 1000;
