@@ -81,7 +81,7 @@ async function createPaymentLink({ orderId, orderNumber, amountZAR, payerName })
   let res;
   try {
     res = await axios.post(
-      `${BASE_URL}/api/v1/payment-links`,
+      `${BASE_URL}/payment-links`,
       {
         amount:            amountCents,
         payerName:         payerName || "TapDish Customer",
