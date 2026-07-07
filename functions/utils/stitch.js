@@ -74,18 +74,18 @@ async function getAccessToken() {
  * @param {string} params.redirectUrl  — Pre-registered redirect URL
  * @returns {{ linkId: string, url: string }}
  */
-async function createPaymentLink({ orderId, orderNumber, amountZAR, redirectUrl }) {
+async function createPaymentLink({ orderId, orderNumber, amountZAR, payerName }) {
   const token = await getAccessToken();
   const amountCents = Math.round(amountZAR * 100);
+
   let res;
   try {
     res = await axios.post(
-      `${BASE_URL}/payment-links`,
+      `${BASE_URL}/api/v1/payment-links`,
       {
-        amount:      amountCents,
-        reference:   orderNumber.slice(0, 50),
-        redirectUrl,
-        metadata: { orderId },
+        amount:            amountCents,
+        payerName:         payerName || "TapDish Customer",
+        merchantReference: orderNumber.slice(0, 50),
       },
       {
         headers: {
@@ -100,18 +100,16 @@ async function createPaymentLink({ orderId, orderNumber, amountZAR, redirectUrl 
     throw err;
   }
 
-  if (!res.data || !res.data.id) {
-    throw new Error(
-      `Stitch Express payment link creation failed: ${JSON.stringify(res.data)}`
-    );
+  const payment = res.data?.data?.payment;
+  if (!payment || !payment.id || !payment.link) {
+    throw new Error(`Stitch Express payment link creation failed: ${JSON.stringify(res.data)}`);
   }
 
   return {
-    linkId: res.data.id,
-    url:    res.data.url,
+    linkId: payment.id,
+    url:    payment.link,
   };
 }
-
  
 
   
