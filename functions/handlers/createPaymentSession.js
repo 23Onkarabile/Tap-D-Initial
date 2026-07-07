@@ -39,25 +39,35 @@ module.exports = async (req, res) => {
       return callableError(res, 400, "FAILED_PRECONDITION", `Order cannot be paid in its current status: ${order.status}`);
     }
 
-    const itemsWithServerPrices = await Promise.all(
-      order.items.map(async (item) => {
-        const productSnap = await db.collection("products").doc(item.productId).get();
-        if (!productSnap.exists) {
-          throw { httpCode: 404, status: "NOT_FOUND", message: `Product not found: ${item.productId}` };
-        }
-        const product = productSnap.data();
-        if (!product.available) {
-          throw { httpCode: 400, status: "FAILED_PRECONDITION", message: `Item is no longer available: ${product.name}` };
-        }
-        return {
-          productId: item.productId,
-          name: product.name,
-          price: product.price,
-          qty: item.qty,
-          subtotal: Math.round(product.price * item.qty * 100) / 100,
-        };
-      })
-    );
+    async function getBusinessItemsMap(businessId) {
+      const categoriesSnap = await db
+        .collection("menus").doc(businessId).collection("categories").get();
+      const map = {};
+      for (const catDoc of categoriesSnap.docs) {
+        const itemsSnap = await catDoc.ref.collection("items").get();
+        itemsSnap.docs.forEach((d) => { map[d.id] = d.data(); });
+      }
+      return map;
+    }
+
+    const itemsMap = await getBusinessItemsMap(order.businessId);
+
+    const itemsWithServerPrices = order.items.map((item) => {
+      const product = itemsMap[item.itemId];
+      if (!product) {
+        throw { httpCode: 404, status: "NOT_FOUND", message: `Item not found: ${item.itemId}` };
+      }
+      if (product.isAvailable === false) {
+        throw { httpCode: 400, status: "FAILED_PRECONDITION", message: `Item is no longer available: ${product.name}` };
+      }
+      return {
+        itemId: item.itemId,
+        name: product.name,
+        price: product.price,
+        qty: item.qty,
+        subtotal: Math.round(product.price * item.qty * 100) / 100,
+      };
+    });
 
     const subtotal = calculateSubtotal(itemsWithServerPrices);
     const pricing = calculatePricing(subtotal);
