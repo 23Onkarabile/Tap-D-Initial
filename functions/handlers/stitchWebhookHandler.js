@@ -91,7 +91,7 @@ module.exports = async (req, res) => {
       const paymentRef = db.collection("payments").doc();
       txn.set(paymentRef, {
         orderId,
-        restaurantId: order.restaurantId,
+        businessId: order.businessId,
         customerId: order.customerId,
         amount: order.pricingSnapshot.totalPayable,
         restaurantPayout: order.pricingSnapshot.restaurantPayout,
