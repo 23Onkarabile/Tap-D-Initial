@@ -37,7 +37,7 @@ async function getAccessToken() {
   let res;
   try {
     res = await axios.post(
-      `${BASE_URL}/api/v1/token`,
+      `${BASE_URL}/token`,
       {
         clientId:     STITCH_CLIENT_ID.value(),
         clientSecret: STITCH_CLIENT_SECRET.value(),
