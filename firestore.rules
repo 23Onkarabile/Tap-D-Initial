@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Anyone can read businesses and menus
+    match /businesses/{bizId} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+        get(/databases/$(database)/documents/vendors/$(request.auth.uid)).data.businessId == bizId;
+    }
+
+    match /menus/{bizId}/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Customers can create orders
+    // Customers can read their own orders
+    // Vendors can read and update orders for their business
+    match /orders/{orderId} {
+      allow create: if true;
+      allow read: if request.auth != null && (
+        resource.data.customerId == request.auth.uid ||
+        get(/databases/$(database)/documents/vendors/$(request.auth.uid)).data.businessId == resource.data.businessId
+      );
+      allow update: if request.auth != null && (
+        get(/databases/$(database)/documents/vendors/$(request.auth.uid)).data.businessId == resource.data.businessId
+      );
+    }
+
+    // Users can only read and write their own profile
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Vendors can only read and write their own vendor doc
+    match /vendors/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Customers can only read and write their own cart
+    match /carts/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+  }
+}

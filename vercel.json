@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/order-status", "destination": "/index.html" },
+    { "source": "/business/:slug", "destination": "/index.html" }
+  ]
+}
