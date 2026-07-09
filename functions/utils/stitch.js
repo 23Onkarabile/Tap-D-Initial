@@ -105,9 +105,12 @@ async function createPaymentLink({ orderId, orderNumber, amountZAR, payerName })
     throw new Error(`Stitch Express payment link creation failed: ${JSON.stringify(res.data)}`);
   }
 
+  const redirectUrl = "https://tapdish.vercel.app/order-status";
+  const finalUrl = `${payment.link}?redirect_url=${encodeURIComponent(redirectUrl)}`;
+
   return {
     linkId: payment.id,
-    url:    payment.link,
+    url:    finalUrl,
   };
 }
  
