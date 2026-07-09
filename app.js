@@ -439,10 +439,11 @@ window.confirmCustomerDetails = async function() {
 }
 
 async function showOrderStatusByReference(orderNumber) {
-  showScreen("track");
+  showScreen("home");
   document.getElementById("track-order-num").textContent = orderNumber;
   document.getElementById("track-status-badge").textContent = "⏳ Checking your order…";
   document.getElementById("track-status-sub").textContent = "Just a moment while we fetch your latest status.";
+  document.getElementById("track-overlay").classList.add("open");
 
   onCustomerAuthChange(async (user) => {
     if (!user) return;
