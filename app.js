@@ -488,6 +488,7 @@ function showTrackScreen(order, navigate = true) {
 }
 
 const STATUS_CONFIG = {
+payment_initiated: { label: "\u26a0\ufe0f Payment Not Completed", sub: "Your payment wasn't finished. Please try again to place this order.", class: "rejected", step: 0 },
   pending:   { label: "\u23f3 Pending",           sub: "Your order has been received. Hang tight!",           class: "pending",   step: 1 },
   preparing: { label: "\ud83d\udc68\u200d\ud83c\udf73 Being Prepared",   sub: "The kitchen is working on your order right now.",    class: "preparing", step: 2 },
   ready:     { label: "\ud83d\udd14 Ready for Pickup!", sub: "Your order is ready \u2014 come collect it now!",          class: "ready",     step: 3 },
