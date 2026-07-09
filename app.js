@@ -424,12 +424,16 @@ window.confirmCustomerDetails = async function() {
 
     if (currentUser) {
       await saveActiveOrder(currentUser.uid, order.id);
+      await clearCart(currentUser.uid);
     }
+    cart = [];
+    updateCartCount();
 
     // NEW: create the Stitch payment session and redirect to pay
     document.getElementById("confirm-customer-btn").textContent = "Redirecting to payment\u2026";
     const paymentResult = await callTapDishFunction('createPaymentSession', { orderId: order.id });
-    window.location.href = paymentResult.checkoutUrl;
+    window.location.href = paymentResult.checkoutUrl;	
+
 
   } catch(err) {
     errEl.textContent = "Error: " + err.message;
