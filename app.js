@@ -283,6 +283,8 @@ function addItem(item) {
   if (cart.length > 0 && cart[0].bizId !== activeBiz.id) {
     window._pendingItem = item;
     window._pendingBizSlug = activeBiz.slug || activeBiz.id;
+    document.getElementById('conflict-from').textContent = cart[0].bizName || 'another restaurant';
+    document.getElementById('conflict-to').textContent = activeBiz.name || 'this restaurant';
     document.getElementById('conflict-overlay').classList.add('open');
     return;
   }
