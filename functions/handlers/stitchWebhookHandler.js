@@ -80,7 +80,7 @@ module.exports = async (req, res) => {
       }
 
       txn.update(orderRef, {
-        status: "paid",
+        status: "pending",
         "payment.status": "paid",
         "payment.transactionId": transactionId,
         "payment.verified": true,
