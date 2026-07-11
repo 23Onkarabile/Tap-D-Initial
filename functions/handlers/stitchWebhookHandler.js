@@ -103,10 +103,10 @@ module.exports = async (req, res) => {
         rawWebhook: payload,
         createdAt: FieldValue.serverTimestamp(),
       });
-
-      const businessRef = db.collection("businesses").doc(order.businessId);
+const businessRef = db.collection("businesses").doc(order.businessId);
       txn.update(businessRef, {
         totalEarnings: FieldValue.increment(order.pricingSnapshot.restaurantPayout),
+        unpaidEarnings: FieldValue.increment(order.pricingSnapshot.restaurantPayout),
       });
 
       console.log(`✅ Payment confirmed for order ${orderId} | Total: R${order.pricingSnapshot.totalPayable} | Restaurant payout: R${order.pricingSnapshot.restaurantPayout} | Platform fee: R${order.pricingSnapshot.platformFee}`);
