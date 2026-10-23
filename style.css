@@ -1,8 +1,4 @@
-/* ==========================================================
-   TapDish styles
-   Every class name from the old inline <style> is kept, so
-   index.html, app.js and the Stitch/Firebase code keep working.
-   Change the look from the :root tokens below.
+
    ========================================================== */
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
