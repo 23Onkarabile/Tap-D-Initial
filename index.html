@@ -3,39 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDish — Order Ahead</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<!-- Bricolage Grotesque for headings, DM Sans for body text -->
+<title>TapDish | Order ahead, pick up on campus</title>
+
+<!-- Fonts: Bricolage Grotesque for headings, DM Sans for body text.
+     The old Bebas Neue / Syne / Instrument Serif link is removed because nothing uses it any more. -->
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<!-- The separated stylesheet -->
+
+<!-- All styling lives in styles.css (must be loaded after the fonts) -->
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<!-- HOME -->
+<!-- ============ HOME ============ -->
 <div id="home" class="screen active">
   <nav class="top-nav">
-    <div class="nav-logo">TAPDISH</div>
+    <div class="nav-logo">TapDish</div>
     <div class="nav-right">
-
       <button type="button" class="cart-btn" id="home-cart-btn" onclick="openCart()">
-        <span>MY ORDER</span>
+        <span>My order</span>
         <span class="cart-count" id="cart-count">0</span>
       </button>
     </div>
   </nav>
+
   <div class="home-hero-wrap">
     <div class="hero-bg"></div>
     <div class="hero-bg-overlay"></div>
-    <div class="hero-glow"></div>
     <div class="home-hero">
       <div class="hero-rule">
-        <div class="hero-rule-line"></div><div class="hero-rule-dot"></div>
-        <div class="hero-rule-label">Pickup Only · No Delivery</div>
-        <div class="hero-rule-dot"></div><div class="hero-rule-line"></div>
+        <div class="hero-rule-dot"></div>
+        <div class="hero-rule-label">Pickup only, no delivery</div>
       </div>
-      <h1 class="hero-h1">TAP.<br><span class="accent">EAT.</span><span class="serif">without the wait.</span></h1>
-      <p class="hero-sub">Order ahead from the best local spots on campus. Fresh food, ready when you are — just tap and collect.</p>
+      <h1 class="hero-h1">Tap.<br>Eat.<span class="serif">Order ahead and collect it when it's ready.</span></h1>
+      <p class="hero-sub">Order from the best local spots on campus. Your food is made while you finish class, so there's no queue when you arrive.</p>
       <div class="hero-chips">
         <span class="hero-chip hot">🔥 Trending now</span>
         <span class="hero-chip">🍔 Burgers</span>
@@ -45,27 +45,27 @@
       </div>
       <div class="search-wrap">
         <div class="search-icon">⌕</div>
-        <input type="text" id="search-input" placeholder="Search restaurants or dishes…" oninput="filterBiz()" aria-label="Search">
-        <button type="button" onclick="filterBiz()">SEARCH</button>
+        <input type="text" id="search-input" placeholder="Search restaurants or dishes" oninput="filterBiz()" aria-label="Search restaurants or dishes">
+        <button type="button" onclick="filterBiz()">Search</button>
       </div>
     </div>
   </div>
-  <div class="section-divider"></div>
+
   <div class="section-head">
-    <h2>RESTAURANTS</h2>
-    <span id="open-count">— OPEN NOW</span>
+    <h2>Restaurants</h2>
+    <span id="open-count">Open now</span>
   </div>
   <div class="businesses" id="biz-list" aria-live="polite"></div>
 </div>
 
-<!-- MENU -->
+<!-- ============ MENU ============ -->
 <div id="menu" class="screen">
   <nav class="top-nav">
-    <div class="nav-logo">TAPDISH</div>
+    <div class="nav-logo">TapDish</div>
     <div class="nav-right">
-      <button type="button" class="back-btn" onclick="goHome()">← BACK</button>
+      <button type="button" class="back-btn" onclick="goHome()">← Back</button>
       <button type="button" class="cart-btn" id="menu-cart-btn" onclick="openCart()">
-        <span>MY ORDER</span>
+        <span>My order</span>
         <span class="cart-count" id="cart-count-2">0</span>
       </button>
     </div>
@@ -83,21 +83,20 @@
     </div>
     <div class="pickup-pill">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
-      PICKUP ONLY — WE'LL ALERT YOU WHEN READY
+      Pickup only. We'll alert you when it's ready.
     </div>
   </div>
   <div class="cat-nav-wrap"><div class="cat-nav" id="cat-nav"></div></div>
   <div class="menu-items" id="menu-items"></div>
 </div>
 
-<!-- TRACK ORDER -->
-<!-- TRACK ORDER SHEET -->
-<div class="ready-banner" id="ready-banner">🔔 YOUR ORDER IS READY — COME COLLECT IT NOW!</div>
+<!-- ============ READY BANNER + TRACK ORDER SHEET ============ -->
+<div class="ready-banner" id="ready-banner">🔔 Your order is ready. Come collect it now.</div>
 <div class="track-overlay" id="track-overlay">
   <div class="track-sheet">
     <div class="orders-sheet-head">
-      <div class="orders-sheet-title">TRACK ORDER</div>
-      <button type="button" class="sheet-x-btn" onclick="document.getElementById('track-overlay').classList.remove('open')">✕</button>
+      <div class="orders-sheet-title">Track order</div>
+      <button type="button" class="sheet-x-btn" aria-label="Close" onclick="document.getElementById('track-overlay').classList.remove('open')">✕</button>
     </div>
     <div class="track-order-num" id="track-order-num">—</div>
     <div class="track-biz" id="track-biz-name">—</div>
@@ -118,24 +117,24 @@
       </div>
     </div>
     <div class="track-card">
-      <div class="track-card-title">📋 Order Details</div>
+      <div class="track-card-title">📋 Order details</div>
       <div class="track-row"><span class="t-label">Customer</span><span class="t-val" id="track-customer-name">—</span></div>
       <div class="track-row"><span class="t-label">Phone</span><span class="t-val" id="track-phone">—</span></div>
-      <div class="track-row"><span class="t-label">Items</span><span class="t-val" style="font-size:12px;color:var(--grey)" id="track-items">—</span></div>
+      <div class="track-row"><span class="t-label">Items</span><span class="t-val" style="font-size:13px;color:var(--muted)" id="track-items">—</span></div>
       <div class="track-row"><span class="t-label">Pickup in</span><span class="t-val" id="track-wait">—</span></div>
       <div class="track-row"><span class="t-label">Total</span><span class="t-val lime" id="track-total">—</span></div>
     </div>
-    <button type="button" class="home-btn" onclick="document.getElementById('track-overlay').classList.remove('open')">CLOSE</button>
+    <button type="button" class="home-btn" onclick="document.getElementById('track-overlay').classList.remove('open')">Close</button>
   </div>
 </div>
 
-<!-- CART SHEET -->
-<div class="cart-overlay" id="cart-overlay" onclick="closeCartOutside(event)" role="dialog" aria-modal="true">
+<!-- ============ CART SHEET ============ -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCartOutside(event)" role="dialog" aria-modal="true" aria-label="Your order">
   <div class="cart-sheet">
     <div class="sheet-drag"></div>
     <div class="sheet-head">
-      <div class="sheet-title">YOUR ORDER</div>
-      <button type="button" class="sheet-close" onclick="closeCart()">✕</button>
+      <div class="sheet-title">Your order</div>
+      <button type="button" class="sheet-close" aria-label="Close" onclick="closeCart()">✕</button>
     </div>
     <div class="sheet-from" id="cart-biz-name">—</div>
     <div class="cart-lines" id="cart-items-list"></div>
@@ -144,19 +143,19 @@
       <div class="cart-total-amt" id="cart-total">$0.00</div>
     </div>
     <button type="button" class="order-btn" id="order-btn" onclick="placeOrder()" disabled>
-      PLACE ORDER · PICKUP
+      Place order for pickup
     </button>
   </div>
 </div>
 
-<!-- AUTH SHEET -->
+<!-- ============ SIGN IN SHEET ============ -->
 <div class="auth-overlay" id="auth-overlay" onclick="closeAuthOutside(event)">
   <div class="auth-sheet">
     <div class="auth-drag"></div>
-    <div class="auth-sheet-title">SIGN IN</div>
-    <div class="auth-sheet-sub">Create an account or sign in to place orders and track them anytime.</div>
+    <div class="auth-sheet-title">Sign in</div>
+    <div class="auth-sheet-sub">Create an account or sign in to place orders and track them.</div>
 
-    <!-- METHOD TABS: Email vs Phone -->
+    <!-- Method tabs: email or phone -->
     <div class="auth-method-tabs">
       <button type="button" class="auth-method-tab active" onclick="switchAuthMethod('email')" id="method-email">
         ✉️ Email <span class="recommended-badge">Recommended</span>
@@ -166,110 +165,110 @@
       </button>
     </div>
 
-    <!-- EMAIL SECTION -->
+    <!-- Email section -->
     <div id="auth-email-section">
       <div class="auth-tabs-inner">
-        <button type="button" class="auth-tab-inner active" onclick="switchEmailTab('login')" id="etab-login">Login</button>
-        <button type="button" class="auth-tab-inner" onclick="switchEmailTab('signup')" id="etab-signup">Sign Up</button>
+        <button type="button" class="auth-tab-inner active" onclick="switchEmailTab('login')" id="etab-login">Log in</button>
+        <button type="button" class="auth-tab-inner" onclick="switchEmailTab('signup')" id="etab-signup">Sign up</button>
       </div>
 
-      <!-- EMAIL LOGIN -->
+      <!-- Email log in -->
       <div id="email-login-form">
         <div class="auth-field">
-          <label>Email</label>
-          <input type="email" class="auth-input" id="el-email" placeholder="you@example.com">
+          <label for="el-email">Email</label>
+          <input type="email" class="auth-input" id="el-email" placeholder="you@example.com" autocomplete="email">
         </div>
         <div class="auth-field">
-          <label>Password</label>
-          <input type="password" class="auth-input" id="el-password" placeholder="••••••••">
+          <label for="el-password">Password</label>
+          <input type="password" class="auth-input" id="el-password" placeholder="Your password" autocomplete="current-password">
         </div>
         <div class="auth-error-msg" id="el-error"></div>
-        <button type="button" class="auth-submit-btn" id="el-btn" onclick="handleEmailLogin()"><span>LOGIN</span></button>
+        <button type="button" class="auth-submit-btn" id="el-btn" onclick="handleEmailLogin()"><span>Log in</span></button>
         <button type="button" class="auth-forgot" onclick="handleAuthForgotPassword()">Forgot password?</button>
       </div>
 
-      <!-- EMAIL SIGNUP -->
+      <!-- Email sign up -->
       <div id="email-signup-form" style="display:none">
         <div class="auth-field">
-          <label>Full Name</label>
-          <input type="text" class="auth-input" id="es-name" placeholder="e.g. Onkarabile">
+          <label for="es-name">Full name</label>
+          <input type="text" class="auth-input" id="es-name" placeholder="e.g. Onkarabile" autocomplete="name">
         </div>
         <div class="auth-field">
-          <label>Phone Number</label>
-          <input type="tel" class="auth-input" id="es-phone" placeholder="e.g. 073 123 4567">
+          <label for="es-phone">Phone number</label>
+          <input type="tel" class="auth-input" id="es-phone" placeholder="e.g. 073 123 4567" autocomplete="tel">
         </div>
         <div class="auth-field">
-          <label>Email</label>
-          <input type="email" class="auth-input" id="es-email" placeholder="you@example.com">
+          <label for="es-email">Email</label>
+          <input type="email" class="auth-input" id="es-email" placeholder="you@example.com" autocomplete="email">
         </div>
         <div class="auth-field">
-          <label>Password</label>
-          <input type="password" class="auth-input" id="es-password" placeholder="Min. 6 characters">
+          <label for="es-password">Password</label>
+          <input type="password" class="auth-input" id="es-password" placeholder="At least 6 characters" autocomplete="new-password">
         </div>
         <div class="auth-error-msg" id="es-error"></div>
-        <button type="button" class="auth-submit-btn" id="es-btn" onclick="handleEmailSignup()"><span>CREATE ACCOUNT</span></button>
+        <button type="button" class="auth-submit-btn" id="es-btn" onclick="handleEmailSignup()"><span>Create account</span></button>
       </div>
     </div>
 
-    <!-- PHONE SECTION -->
+    <!-- Phone section -->
     <div id="auth-phone-section" style="display:none">
       <div id="phone-step-1">
         <div class="auth-field">
-          <label>Phone Number</label>
-          <input type="tel" class="auth-input" id="ph-number" placeholder="+27 73 123 4567">
+          <label for="ph-number">Phone number</label>
+          <input type="tel" class="auth-input" id="ph-number" placeholder="+27 73 123 4567" autocomplete="tel">
         </div>
         <div class="auth-error-msg" id="ph-error"></div>
         <div id="recaptcha-container"></div>
-        <button type="button" class="auth-submit-btn" id="ph-btn" onclick="handleSendOTP()"><span>SEND OTP</span></button>
+        <button type="button" class="auth-submit-btn" id="ph-btn" onclick="handleSendOTP()"><span>Send code</span></button>
       </div>
       <div id="phone-step-2" style="display:none">
-        <div class="otp-sent-msg show" id="otp-sent-msg">OTP sent! Check your messages.</div>
+        <div class="otp-sent-msg show" id="otp-sent-msg">Code sent. Check your messages.</div>
         <div class="auth-field">
-          <label>Enter OTP</label>
-          <input type="number" class="auth-input" id="ph-otp" placeholder="6-digit code">
+          <label for="ph-otp">Enter code</label>
+          <input type="number" class="auth-input" id="ph-otp" placeholder="6-digit code" autocomplete="one-time-code">
         </div>
         <div class="auth-field">
-          <label>Your Name</label>
-          <input type="text" class="auth-input" id="ph-name" placeholder="e.g. Onkarabile">
+          <label for="ph-name">Your name</label>
+          <input type="text" class="auth-input" id="ph-name" placeholder="e.g. Onkarabile" autocomplete="name">
         </div>
         <div class="auth-error-msg" id="ph-otp-error"></div>
-        <button type="button" class="auth-submit-btn" id="ph-otp-btn" onclick="handleVerifyOTP()"><span>VERIFY & CONTINUE</span></button>
+        <button type="button" class="auth-submit-btn" id="ph-otp-btn" onclick="handleVerifyOTP()"><span>Verify and continue</span></button>
       </div>
     </div>
 
   </div>
 </div>
 
-<!-- CUSTOMER DETAILS MODAL (pre-order name/phone confirm) -->
+<!-- ============ CONFIRM ORDER MODAL (name and phone check before placing) ============ -->
 <div class="modal-overlay" id="customer-modal">
   <div class="customer-modal">
-    <div class="cm-title">CONFIRM ORDER</div>
-    <div class="cm-sub">Review your details before placing the order.</div>
+    <div class="cm-title">Confirm your order</div>
+    <div class="cm-sub">Check your details before you place the order.</div>
     <div class="cm-field">
-      <label class="cm-label">Your Name</label>
-      <input type="text" class="cm-input" id="customer-name" placeholder="Your name">
+      <label class="cm-label" for="customer-name">Your name</label>
+      <input type="text" class="cm-input" id="customer-name" placeholder="Your name" autocomplete="name">
     </div>
     <div class="cm-field">
-      <label class="cm-label">Phone Number</label>
-      <input type="tel" class="cm-input" id="customer-phone" placeholder="Your phone number">
+      <label class="cm-label" for="customer-phone">Phone number</label>
+      <input type="tel" class="cm-input" id="customer-phone" placeholder="Your phone number" autocomplete="tel">
     </div>
     <div class="cm-error" id="customer-modal-error"></div>
-    <div class="cm-note">📱 Used to identify your order at pickup.</div>
+    <div class="cm-note">📱 We use this to match your order at pickup.</div>
     <div class="cm-actions">
       <button type="button" class="cm-confirm-btn" id="confirm-customer-btn" onclick="confirmCustomerDetails()">
-        CONFIRM &amp; PLACE ORDER
+        Confirm and place order
       </button>
       <button type="button" class="cm-cancel-btn" onclick="closeCustomerModal()">Cancel</button>
     </div>
   </div>
 </div>
 
-<!-- PROFILE SHEET -->
+<!-- ============ PROFILE SHEET ============ -->
 <div class="profile-overlay" id="profile-overlay" onclick="closeProfileOutside(event)">
   <div class="profile-sheet">
     <div class="orders-sheet-head">
-  <div class="orders-sheet-title">PROFILE</div>
-  <button type="button" class="sheet-x-btn" onclick="document.getElementById('profile-overlay').classList.remove('open')">✕</button>
+      <div class="orders-sheet-title">Profile</div>
+      <button type="button" class="sheet-x-btn" aria-label="Close" onclick="document.getElementById('profile-overlay').classList.remove('open')">✕</button>
     </div>
     <div class="profile-head">
       <div class="profile-avatar">👤</div>
@@ -279,54 +278,54 @@
       </div>
     </div>
     <div class="profile-section-title">Account</div>
-<div class="profile-actions">
-  <button type="button" class="profile-action-btn" onclick="openEditProfile()">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-    Edit Profile
-  </button>
-  <button type="button" class="profile-action-btn" onclick="openMyAddress()">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-    My Address
-  </button>
-  <button type="button" class="profile-action-btn" onclick="openPayment()">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-    Payment
-  </button>
-  <button type="button" class="profile-action-btn sign-out-btn" onclick="handleSignOut()">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-    Logout
-  </button>
-</div>
+    <div class="profile-actions">
+      <button type="button" class="profile-action-btn" onclick="openEditProfile()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit profile
+      </button>
+      <button type="button" class="profile-action-btn" onclick="openMyAddress()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        My address
+      </button>
+      <button type="button" class="profile-action-btn" onclick="openPayment()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Payment
+      </button>
+      <button type="button" class="profile-action-btn sign-out-btn" onclick="handleSignOut()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Log out
+      </button>
+    </div>
   </div>
 </div>
 
-<!-- ORDER HISTORY SHEET -->
+<!-- ============ ORDER HISTORY SHEET ============ -->
 <div class="history-overlay" id="history-overlay" onclick="closeHistoryOutside(event)">
   <div class="history-sheet">
     <div class="history-drag"></div>
-    <div class="history-sheet-title">ORDER HISTORY</div>
+    <div class="history-sheet-title">Order history</div>
     <div class="history-sheet-sub" id="history-sheet-sub">Your past orders</div>
     <div id="history-list"></div>
   </div>
 </div>
 
-<!-- CONFLICT MODAL -->
+<!-- ============ SWITCH RESTAURANT MODAL ============ -->
 <div class="modal-overlay" id="conflict-overlay">
   <div class="conflict-modal">
     <div class="conflict-icon">⚠️</div>
-    <div class="conflict-title">DIFFERENT RESTAURANT</div>
+    <div class="conflict-title">Switch restaurant?</div>
     <div class="conflict-body">
       You already have items from <strong id="conflict-from">—</strong>.
-      Switching to <strong id="conflict-to">—</strong> will clear your current cart.
+      Switching to <strong id="conflict-to">—</strong> will clear your current order.
     </div>
     <div class="conflict-actions">
-      <button type="button" class="btn-clear" onclick="confirmClearCart()">CLEAR CART &amp; SWITCH</button>
+      <button type="button" class="btn-clear" onclick="confirmClearCart()">Clear order and switch</button>
       <button type="button" class="btn-keep" onclick="cancelConflict()">Keep current order</button>
     </div>
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
+<!-- ============ BOTTOM NAV ============ -->
 <nav class="bottom-nav" id="bottom-nav">
   <button type="button" class="bottom-nav-btn active" id="bnav-home" onclick="bottomNav('home')">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
@@ -343,16 +342,17 @@
   </button>
 </nav>
 
-<!-- ORDERS SHEET -->
+<!-- ============ ORDERS SHEET ============ -->
 <div class="orders-overlay" id="orders-overlay" onclick="closeOrdersOutside(event)">
   <div class="orders-sheet">
     <div class="orders-sheet-head">
-  <div class="orders-sheet-title">MY ORDERS</div>
-  <button type="button" class="sheet-x-btn" onclick="document.getElementById('orders-overlay').classList.remove('open')">✕</button>
+      <div class="orders-sheet-title">My orders</div>
+      <button type="button" class="sheet-x-btn" aria-label="Close" onclick="document.getElementById('orders-overlay').classList.remove('open')">✕</button>
     </div>
-    <!-- ACTIVE ORDER SECTION -->
+
+    <!-- Active order (shown by JS when there is one) -->
     <div id="active-order-section" style="display:none">
-      <div class="orders-section-label">ACTIVE ORDER</div>
+      <div class="orders-section-label">Active order</div>
       <div class="active-order-card" id="active-order-card">
         <div class="aoc-top">
           <div>
@@ -366,23 +366,21 @@
           <span class="aoc-total" id="aoc-total">—</span>
           <button type="button" class="aoc-track-btn" onclick="viewActiveOrder()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
-            TRACK
+            Track
           </button>
         </div>
       </div>
     </div>
 
-    <!-- HISTORY SECTION -->
-    <!-- TABS -->
-<div class="orders-tabs">
-  <button class="orders-tab active" id="otab-processing" onclick="switchOrdersTab('processing')">Processing</button>
-  <button class="orders-tab" id="otab-past" onclick="switchOrdersTab('past')">Past Orders</button>
-</div>
-<div class="orders-sheet-sub" id="orders-sheet-sub"></div>
-<div id="orders-history-list"></div>
+    <!-- Tabs: processing / past orders -->
+    <div class="orders-tabs">
+      <button type="button" class="orders-tab active" id="otab-processing" onclick="switchOrdersTab('processing')">Processing</button>
+      <button type="button" class="orders-tab" id="otab-past" onclick="switchOrdersTab('past')">Past orders</button>
+    </div>
+    <div class="orders-sheet-sub" id="orders-sheet-sub"></div>
+    <div id="orders-history-list"></div>
   </div>
 </div>
-
 
 <script type="module" src="app.js"></script>
 </body>
