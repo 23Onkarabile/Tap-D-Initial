@@ -340,3 +340,9 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 /* Respect people who turn animations off */
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
+/* Closed restaurants: red dot and text (app.js adds .closed to the dot) */
+.status-dot.closed{background:var(--red);animation:none}
+.biz-status:has(.closed){color:var(--red)}
+
+/* Unpaid orders get the same red badge as pending */
+.hoc-status.payment_initiated,.aoc-status-badge.payment_initiated{background:var(--red-dim);color:var(--red)}
