@@ -9,11 +9,11 @@
   --line:rgba(247,241,232,.11);
   --text:#F7F1E8;
   --muted:#A99FBA;
-  --accent:#FFC83D;        /* butter yellow: used ONLY for actions, so it stands out */
-  --accent-hover:#FFD566;
-  --accent-ink:#231A00;    /* text on top of the accent */
-  --accent-dim:rgba(255,200,61,.13);
-  --accent-line:rgba(255,200,61,.35);
+  --accent:#C8F135;
+  --accent-hover:#D9FF4D;
+  --accent-ink:#141A00;                 /* dark text on top of the green buttons */
+  --accent-dim:rgba(200,241,53,.13);
+  --accent-line:rgba(200,241,53,.35);
   /* order status colours */
   --red:#FF8A8A;--red-dim:rgba(255,138,138,.14);
   --blue:#7DBBFF;--blue-dim:rgba(125,187,255,.14);
