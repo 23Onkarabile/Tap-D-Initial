@@ -11,6 +11,10 @@
 
 <!-- All styling lives in styles.css (must be loaded after the fonts) -->
 <link rel="stylesheet" href="styles.css">
+
+<!-- Lets customers add TapDish to their home screen (needed for iPhone notifications) -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0F0F0F">
 </head>
 <body>
 
@@ -136,6 +140,8 @@
       <div class="track-row"><span class="t-label">Pickup in</span><span class="t-val" id="track-wait">—</span></div>
       <div class="track-row"><span class="t-label">Total</span><span class="t-val lime" id="track-total">—</span></div>
     </div>
+    <!-- Shown by app.js while the order is still being made -->
+    <button type="button" class="order-btn" id="notify-btn" style="display:none;margin-bottom:10px" onclick="enableNotifications()">🔔 Notify me when it's ready</button>
     <button type="button" class="home-btn" onclick="document.getElementById('track-overlay').classList.remove('open')">Close</button>
   </div>
 </div>
@@ -413,3 +419,4 @@
 <script type="module" src="app.js"></script>
 </body>
 </html>
+ 
