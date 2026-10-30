@@ -1,12 +1,7 @@
 // app.js: Customer-facing TapDish app
-// Changes in this version (logic is otherwise unchanged):
 //  - sentence-case copy to match the new design
 //  - friendly status labels (STATUS_LABELS / statusLabel)
-//  - profile name/email now update even though #profile-btn no longer exists
-//  - Home tab always visible in the bottom nav
-//  - retrying a failed payment no longer creates a duplicate order
-//  - unpaid orders (payment_initiated) now show under "Processing"
-//  - old colour names replaced, debug console.logs removed
+//  - unpaid orders (payment_initiated) 
 
 // Show a simple error if something crashes while the list is still loading
 window.addEventListener("error", () => {
@@ -27,6 +22,7 @@ import {
   getOrderHistory,
   callTapDishFunction
 } from "./firebase.service.js";
+import { enableOrderNotifications } from "./notifications.js";
 
 // ══ STATE ══
 let businesses = [];
@@ -525,6 +521,7 @@ function showTrackScreen(order, navigate = true) {
   document.getElementById("track-items").textContent =
     (order.items || []).map(i => `${i.qty}× ${i.name}`).join(" · ");
   updateTrackStatus(order.status || "pending");
+  updateNotifyButton(order.status);
   if (navigate) document.getElementById("track-overlay").classList.add("open");
 }
 
@@ -1067,6 +1064,40 @@ window.closeFavOutside = function (e) {
   if (e.target === document.getElementById("fav-overlay")) closeFav();
 };
 
+// ══ PUSH NOTIFICATIONS ("your order is ready") ══
+const IS_IOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const IS_INSTALLED = window.navigator.standalone || window.matchMedia("(display-mode: standalone)").matches;
+
+// Show the "Notify me" button only while the order is still being made,
+// and only on devices that can receive alerts (iPhones need the home-screen install first)
+function updateNotifyButton(status) {
+  const btn = document.getElementById("notify-btn");
+  if (!btn) return;
+  const canNotify = "Notification" in window && "serviceWorker" in navigator;
+  const waiting = ["pending", "preparing"].includes(status);
+  btn.style.display = waiting && (canNotify || IS_IOS) ? "block" : "none";
+  btn.disabled = false;
+  btn.textContent = "🔔 Notify me when it's ready";
+}
+
+window.enableNotifications = async function () {
+  const btn = document.getElementById("notify-btn");
+  if (IS_IOS && !IS_INSTALLED) {
+    alert("On iPhone: tap the Share button, choose Add to Home Screen, then open TapDish from your home screen and tap this button again.");
+    return;
+  }
+  if (!currentUser) { openAuthSheet(); return; }
+  btn.disabled = true;
+  btn.textContent = "Turning on…";
+  try {
+    await enableOrderNotifications(currentUser.uid);
+    btn.textContent = "✅ You'll get an alert when it's ready";
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = "🔔 Notify me when it's ready";
+    alert(e.message);
+  }
+};
+
 updateGreeting();
 init();
-
