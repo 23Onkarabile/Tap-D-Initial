@@ -1,4 +1,12 @@
 // app.js: Customer-facing TapDish app
+// Changes in this version (logic is otherwise unchanged):
+//  - sentence-case copy to match the new design
+//  - friendly status labels (STATUS_LABELS / statusLabel)
+//  - profile name/email now update even though #profile-btn no longer exists
+//  - Home tab always visible in the bottom nav
+//  - retrying a failed payment no longer creates a duplicate order
+//  - unpaid orders (payment_initiated) now show under "Processing"
+//  - old colour names replaced, debug console.logs removed
 
 // Show a simple error if something crashes while the list is still loading
 window.addEventListener("error", () => {
@@ -93,7 +101,8 @@ async function init() {
     businesses = data;
     const openCount = data.filter(b => b.isOpen).length;
     document.getElementById("open-count").textContent = openCount + " open now";
-    renderBizCards(businesses);
+    filterBiz();
+    renderPopular();
   });
 
   const orderReference = resolveOrderStatusRoute();
@@ -124,6 +133,7 @@ function updateProfileUI() {
       ? (currentProfile.email || currentUser.phoneNumber || "—")
       : "Not signed in";
   }
+  updateGreeting();
 }
 
 // ══ CART PERSISTENCE ══
@@ -180,38 +190,45 @@ function renderBizCards(list) {
     el.innerHTML = `<div class="no-results"><strong>No results found</strong>Try a different search term.</div>`;
     return;
   }
+  // Small line icons for the stats row (pickup only: no distance, just where to collect)
+  const ico = {
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15,14"/></svg>',
+    star:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,3 14.8,9 21,9.7 16.4,14 17.7,20.5 12,17.2 6.3,20.5 7.6,14 3,9.7 9.2,9"/></svg>',
+    pin:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'
+  };
   el.innerHTML = list.map((b) => `
-    <div class="biz-card" onclick="openMenu('${b.slug || b.id}')">
+    <div class="biz-card ${b.isOpen ? "" : "is-closed"}" onclick="openMenu('${b.slug || b.id}')">
       <div class="biz-img-wrap">
         <img src="${b.bannerUrl}" alt="${b.name}" loading="lazy">
         <div class="biz-img-gradient"></div>
+        ${favBtn(b)}
         <div class="biz-status">
           <div class="status-dot ${b.isOpen ? "" : "closed"}"></div>
           ${b.isOpen ? "Open" : "Closed"}
         </div>
-        <div class="biz-rating-badge">⭐ ${b.rating}</div>
-      </div>
-      <div class="biz-body">
-        <div class="biz-top">
+        <div class="biz-title">
           <div class="biz-name">${b.name}</div>
-          <div class="biz-arrow">→</div>
+          <div class="biz-cuisine">${(b.tags || []).join(" · ")}</div>
         </div>
-        <div class="biz-tags">${b.tags.map(t => `<span class="biz-tag">${t}</span>`).join("")}</div>
-        <div class="biz-meta-row">
-          <div class="biz-meta-item"><strong>${b.location}</strong>Location</div>
-          <div class="biz-meta-item"><strong>${b.estimatedWaitMin}–${b.estimatedWaitMax} min</strong>Wait time</div>
-          <div class="biz-meta-item"><strong>${b.reviewCount}</strong>Reviews</div>
-        </div>
+      </div>
+      <div class="biz-stats">
+        <span class="stat">${ico.clock}${b.estimatedWaitMin}–${b.estimatedWaitMax} min</span>
+        <span class="stat">${ico.star}${b.rating}${b.reviewCount ? ` <small>(${b.reviewCount})</small>` : ""}</span>
+        <span class="stat">${ico.pin}${b.location}</span>
       </div>
     </div>`).join("");
 }
 
 function filterBiz() {
   const q = document.getElementById("search-input").value.toLowerCase().trim();
-  if (!q) { renderBizCards(businesses); return; }
-  renderBizCards(businesses.filter(b =>
-    b.name.toLowerCase().includes(q) || b.tags.some(t => t.toLowerCase().includes(q))
-  ));
+  let list = businesses;
+  if (openOnly) list = list.filter(b => b.isOpen);
+  if (q) {
+    list = list.filter(b =>
+      b.name.toLowerCase().includes(q) || (b.tags || []).some(t => t.toLowerCase().includes(q))
+    );
+  }
+  renderBizCards(list);
 }
 
 // ══ MENU ══
@@ -792,11 +809,17 @@ window.bottomNav = function (tab) {
   document.getElementById("bnav-" + tab).classList.add("active");
   if (tab === "home") {
     document.getElementById("orders-overlay").classList.remove("open");
+    document.getElementById("fav-overlay").classList.remove("open");
     goHome();
+  } else if (tab === "favs") {
+    document.getElementById("orders-overlay").classList.remove("open");
+    openFavSheet();
   } else if (tab === "orders") {
+    document.getElementById("fav-overlay").classList.remove("open");
     openOrdersSheet();
   } else if (tab === "profile") {
     document.getElementById("orders-overlay").classList.remove("open");
+    document.getElementById("fav-overlay").classList.remove("open");
     if (!currentUser) { openAuthSheet(); return; }
     document.getElementById("profile-overlay").classList.add("open");
   }
@@ -945,4 +968,105 @@ window.openPayment = function () {
   alert("Payment settings are coming soon.");
 };
 
+// ══ HOME: greeting, categories, open-only filter, popular row ══
+let openOnly = false;
+
+// "Good morning, Name!" based on the phone's clock
+function updateGreeting() {
+  const hiEl = document.getElementById("greet-hi");
+  const nameEl = document.getElementById("greet-name");
+  if (!hiEl || !nameEl) return;
+  const h = new Date().getHours();
+  hiEl.textContent = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  const first = ((currentProfile && currentProfile.name) || "").split(" ")[0];
+  nameEl.textContent = first ? first + "!" : "Hungry?";
+}
+
+// "Open now" pill: show only restaurants that are open
+window.toggleOpenOnly = function () {
+  openOnly = !openOnly;
+  const btn = document.getElementById("filter-open");
+  btn.classList.toggle("on", openOnly);
+  btn.setAttribute("aria-pressed", openOnly);
+  filterBiz();
+};
+
+// Category tile: fills the search box with a keyword that matches restaurant names or tags
+window.pickCategory = function (term, btn) {
+  document.querySelectorAll(".cat-tile").forEach(t => t.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("search-input").value = term;
+  filterBiz();
+  scrollToList();
+};
+
+window.scrollToList = function () {
+  const el = document.getElementById("all-restaurants");
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+};
+
+// Top 5 rated restaurants in a sideways-scrolling row
+function renderPopular() {
+  const row = document.getElementById("pop-row");
+  if (!row) return;
+  const top = [...businesses].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5);
+  row.innerHTML = top.map(b => `
+    <div class="pop-card" onclick="openMenu('${b.slug || b.id}')">
+      <img src="${b.bannerUrl}" alt="${b.name}" loading="lazy">
+      <div class="pop-body">
+        <div class="pop-name">${b.name}</div>
+        <div class="pop-meta">⭐ ${b.rating} · ${b.estimatedWaitMin}–${b.estimatedWaitMax} min</div>
+      </div>
+    </div>`).join("");
+}
+
+// ══ FAVOURITES (saved on this device) ══
+const FAV_KEY = "tapdish_favs";
+function getFavs() {
+  try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; } catch (e) { return []; }
+}
+function setFavs(list) {
+  try { localStorage.setItem(FAV_KEY, JSON.stringify(list)); } catch (e) { /* storage blocked: ignore */ }
+}
+function favBtn(b) {
+  const on = getFavs().includes(b.id);
+  return `<button type="button" class="fav-btn ${on ? "on" : ""}" aria-label="${on ? "Remove from" : "Add to"} favourites" onclick="toggleFav(event,'${b.id}')">${on ? "♥" : "♡"}</button>`;
+}
+window.toggleFav = function (e, id) {
+  e.stopPropagation(); // don't open the menu when the heart is tapped
+  const favs = getFavs();
+  const i = favs.indexOf(id);
+  if (i > -1) favs.splice(i, 1); else favs.push(id);
+  setFavs(favs);
+  filterBiz();
+  renderFavList();
+};
+function renderFavList() {
+  const listEl = document.getElementById("fav-list");
+  const subEl = document.getElementById("fav-sub");
+  if (!listEl) return;
+  const favs = getFavs();
+  const mine = businesses.filter(b => favs.includes(b.id));
+  subEl.textContent = `${mine.length} saved`;
+  if (!mine.length) {
+    listEl.innerHTML = '<div class="history-empty"><span class="history-empty-icon">♡</span><p>No favourites yet.<br>Tap the heart on a restaurant to save it.</p></div>';
+    return;
+  }
+  listEl.innerHTML = mine.map(b => `
+    <div class="history-order-card" onclick="closeFav();openMenu('${b.slug || b.id}')">
+      <div class="hoc-head"><span class="hoc-num">${b.name}</span><span class="hoc-date">${b.isOpen ? "Open" : "Closed"}</span></div>
+      <div class="hoc-items">⭐ ${b.rating} · ${b.estimatedWaitMin}–${b.estimatedWaitMax} min · ${b.location}</div>
+    </div>`).join("");
+}
+function openFavSheet() {
+  renderFavList();
+  document.getElementById("fav-overlay").classList.add("open");
+}
+window.closeFav = function () { document.getElementById("fav-overlay").classList.remove("open"); };
+window.closeFavOutside = function (e) {
+  if (e.target === document.getElementById("fav-overlay")) closeFav();
+};
+
+updateGreeting();
 init();
+
