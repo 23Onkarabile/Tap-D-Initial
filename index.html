@@ -26,33 +26,45 @@
     </div>
   </nav>
 
-  <div class="home-hero-wrap">
-    <div class="hero-bg"></div>
-    <div class="hero-bg-overlay"></div>
-    <div class="home-hero">
-      <div class="hero-rule">
-        <div class="hero-rule-dot"></div>
-        <div class="hero-rule-label">Pickup only, no delivery</div>
-      </div>
-      <h1 class="hero-h1">Tap.<br>Eat.<span class="serif">Order ahead and collect it when it's ready.</span></h1>
-      <p class="hero-sub">Order from the best local spots on campus. Your food is made while you finish class, so there's no queue when you arrive.</p>
-      <div class="hero-chips">
-        <span class="hero-chip hot">🔥 Trending now</span>
-        <span class="hero-chip">🍔 Burgers</span>
-        <span class="hero-chip">🌯 Wraps</span>
-        <span class="hero-chip">🥤 Drinks</span>
-        <span class="hero-chip">🍜 Noodles</span>
-      </div>
-      <div class="search-wrap">
-        <div class="search-icon">⌕</div>
-        <input type="text" id="search-input" placeholder="Search restaurants or dishes" oninput="filterBiz()" aria-label="Search restaurants or dishes">
-        <button type="button" onclick="filterBiz()">Search</button>
-      </div>
+  <!-- Greeting hero: the time-based greeting and first name are filled in by app.js -->
+  <div class="home-hero-wrap greet">
+    <div class="greet-text">
+      <p class="greet-hi" id="greet-hi">Hello</p>
+      <h1 class="greet-name" id="greet-name">Hungry?</h1>
+      <p class="greet-sub">Pickup only, no delivery</p>
     </div>
   </div>
 
-  <div class="section-head">
-    <h2>Restaurants</h2>
+  <!-- Search + "open now" filter -->
+  <div class="home-search">
+    <div class="search-wrap">
+      <div class="search-icon">⌕</div>
+      <input type="text" id="search-input" placeholder="Search restaurants or dishes" oninput="filterBiz()" aria-label="Search restaurants or dishes">
+    </div>
+    <button type="button" class="filter-btn" id="filter-open" onclick="toggleOpenOnly()" aria-pressed="false">Open now</button>
+  </div>
+
+  <!-- Categories: each tile filters the restaurant list by that keyword -->
+  <div class="cat-grid" id="cat-grid">
+    <button type="button" class="cat-tile" onclick="pickCategory('burger',this)"><span class="cat-ico">🍔</span>Burgers</button>
+    <button type="button" class="cat-tile" onclick="pickCategory('wrap',this)"><span class="cat-ico">🌯</span>Wraps</button>
+    <button type="button" class="cat-tile" onclick="pickCategory('pizza',this)"><span class="cat-ico">🍕</span>Pizza</button>
+    <button type="button" class="cat-tile" onclick="pickCategory('chicken',this)"><span class="cat-ico">🍗</span>Chicken</button>
+    <button type="button" class="cat-tile" onclick="pickCategory('noodle',this)"><span class="cat-ico">🍜</span>Noodles</button>
+    <button type="button" class="cat-tile" onclick="pickCategory('drink',this)"><span class="cat-ico">🥤</span>Drinks</button>
+    <button type="button" class="cat-tile" onclick="pickCategory('dessert',this)"><span class="cat-ico">🍩</span>Desserts</button>
+    <button type="button" class="cat-tile active" onclick="pickCategory('',this)"><span class="cat-ico">🍽️</span>All</button>
+  </div>
+
+  <!-- Popular near you (top rated, filled by app.js) -->
+  <div class="section-head home-sec">
+    <h2>Popular near you</h2>
+    <button type="button" class="link-btn" onclick="scrollToList()">Explore ›</button>
+  </div>
+  <div class="pop-row" id="pop-row"></div>
+
+  <div class="section-head" id="all-restaurants">
+    <h2>All restaurants</h2>
     <span id="open-count">Open now</span>
   </div>
   <div class="businesses" id="biz-list" aria-live="polite"></div>
@@ -331,6 +343,10 @@
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
     <span>Home</span>
   </button>
+  <button type="button" class="bottom-nav-btn" id="bnav-favs" onclick="bottomNav('favs')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 00-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 000-7.8z"/></svg>
+    <span>Favourites</span>
+  </button>
   <button type="button" class="bottom-nav-btn" id="bnav-orders" onclick="bottomNav('orders')">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
     <span>Orders</span>
@@ -382,7 +398,18 @@
   </div>
 </div>
 
+<!-- ============ FAVOURITES SHEET ============ -->
+<div class="orders-overlay" id="fav-overlay" onclick="closeFavOutside(event)">
+  <div class="orders-sheet">
+    <div class="orders-sheet-head">
+      <div class="orders-sheet-title">Favourites</div>
+      <button type="button" class="sheet-x-btn" aria-label="Close" onclick="closeFav()">✕</button>
+    </div>
+    <div class="orders-sheet-sub" id="fav-sub"></div>
+    <div id="fav-list"></div>
+  </div>
+</div>
+
 <script type="module" src="app.js"></script>
 </body>
 </html>
-
