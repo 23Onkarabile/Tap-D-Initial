@@ -1,3 +1,9 @@
+/* ==========================================================
+   TapDish styles: near-black base + lime green accent
+   Every class name from the original CSS is kept, so index.html,
+   app.js and dashboard.js keep working.
+   Change the look from the :root tokens below.
+   ========================================================== */
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -364,3 +370,74 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 /* Respect people who turn animations off */
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
+/* ==========================================================
+   HOME REDESIGN: greeting hero, search + filter, category grid,
+   "Popular near you" row, favourites
+   ========================================================== */
+
+/* Greeting hero: dark sky with two lime hills (pure CSS, no image to load) */
+.greet{height:300px;background:linear-gradient(180deg,#0E1F18 0%,#173318 70%,#1F4A17 100%)}
+.greet::before,.greet::after{content:'';position:absolute;border-radius:50% 50% 0 0/100% 100% 0 0}
+.greet::before{left:-15%;right:-15%;bottom:-70px;height:150px;background:#9BC82A}
+.greet::after{left:15%;right:-30%;bottom:-90px;height:150px;background:var(--accent)}
+.greet-text{position:relative;z-index:2;text-align:center;padding:36px 20px 0}
+.greet-hi{font-size:18px;color:rgba(247,241,232,.8)}
+.greet-name{font-family:var(--head);font-weight:800;font-size:clamp(34px,10vw,52px);letter-spacing:-1px;line-height:1.05;margin-top:2px}
+.greet-sub{display:inline-block;margin-top:12px;background:rgba(15,15,15,.55);padding:5px 12px;border-radius:var(--r-pill);font-size:13px;font-weight:600}
+
+/* Search bar with an "Open now" filter toggle beside it */
+.home-search{display:flex;gap:10px;align-items:center;padding:0 20px;max-width:720px;margin:20px auto 0}
+.home-search .search-wrap{flex:1;max-width:none}
+.filter-btn{flex-shrink:0;background:var(--surface);color:var(--muted);border:1px solid var(--line);border-radius:var(--r-pill);
+  padding:13px 16px;font-family:var(--body);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.filter-btn.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+/* Category grid: 4 tiles per row, tap to filter the list */
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 12px;padding:0 20px;max-width:720px;margin:24px auto 8px}
+.cat-tile{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;
+  color:var(--text);font-family:var(--body);font-size:13px;font-weight:600}
+.cat-ico{width:100%;aspect-ratio:1;background:var(--surface);border:1px solid var(--line);border-radius:18px;
+  display:flex;align-items:center;justify-content:center;font-size:30px;transition:all .15s}
+.cat-tile.active .cat-ico{border-color:var(--accent);background:var(--accent-dim)}
+.cat-tile.active{color:var(--accent)}
+
+/* Section header with a text button on the right */
+.home-sec{margin-top:24px}
+.link-btn{background:none;border:0;color:var(--accent);font-family:var(--body);font-size:14px;font-weight:700;cursor:pointer}
+
+/* Popular near you: sideways scrolling cards */
+.pop-row{display:flex;gap:14px;overflow-x:auto;padding:0 20px 8px;margin-bottom:12px;scrollbar-width:none;scroll-snap-type:x mandatory}
+.pop-row::-webkit-scrollbar{display:none}
+.pop-card{flex:0 0 250px;scroll-snap-align:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);overflow:hidden;cursor:pointer}
+.pop-card img{width:100%;height:140px;object-fit:cover;display:block}
+.pop-body{padding:12px 14px 14px}
+.pop-name{font-family:var(--head);font-weight:700;font-size:18px;letter-spacing:-.2px}
+.pop-meta{font-size:13px;color:var(--muted);margin-top:2px}
+
+/* Heart button on restaurant cards */
+.fav-btn{position:absolute;top:12px;right:12px;z-index:2;width:36px;height:36px;border-radius:50%;border:0;
+  background:rgba(15,15,15,.8);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.fav-btn.on{color:var(--red)}
+.history-order-card[onclick]{cursor:pointer}
+
+/* Bottom nav now has 4 tabs, so tighten the spacing */
+.bottom-nav-btn{padding:4px 6px}
+.bottom-nav-btn svg{width:52px}
+.bnav-badge{right:14px}
+
+/* ==========================================================
+   RESTAURANT CARDS (reference style): name + cuisine on the photo,
+   stats row underneath (wait time, rating, pickup spot)
+   ========================================================== */
+.biz-img-wrap{height:200px}
+/* Stronger fade at the bottom so the white name stays readable on any photo */
+.biz-img-gradient{background:linear-gradient(180deg,rgba(15,15,15,.05) 25%,rgba(15,15,15,.88) 100%)}
+.biz-title{position:absolute;left:16px;right:16px;bottom:14px;z-index:1}
+.biz-title .biz-name{font-size:26px;margin-bottom:2px;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.biz-cuisine{font-size:14px;font-weight:500;color:rgba(255,255,255,.85)}
+.biz-stats{display:flex;justify-content:space-around;align-items:center;gap:8px;padding:14px 12px;background:var(--surface)}
+.stat{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);min-width:0}
+.stat svg{width:18px;height:18px;flex-shrink:0;color:var(--accent)}
+.stat small{font-size:12px;opacity:.8}
+/* Closed restaurants: photo is dimmed so open ones stand out */
+.biz-card.is-closed .biz-img-wrap img{filter:grayscale(.7) brightness(.7)}
