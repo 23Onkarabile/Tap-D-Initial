@@ -9,7 +9,7 @@ import { doc, setDoc, arrayUnion }
 
 // Public key from Firebase Console > Project settings > Cloud Messaging > Web Push certificates.
 // Paste yours between the quotes (it is safe to keep in the code: it is meant to be public).
-export const VAPID_KEY = "PASTE_YOUR_VAPID_PUBLIC_KEY_HERE";
+export const VAPID_KEY = "BInSp3tyF2j6RmzYnte8yncW7bwKLc42uL0oWSAjhWeI6SLGVQ-8X4SSXqJ1XTkKkhlTOmXkXurMShqebCuCtTg";
 
 // Asks permission, gets this phone's token, and saves it on the customer's profile
 // so the server knows where to send the "ready" alert.
