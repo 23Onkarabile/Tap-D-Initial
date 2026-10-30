@@ -3,27 +3,45 @@
 
 /* DESIGN TOKENS: one place to change colours, fonts and radii */
 :root{
-  --bg:#1A1424;            /* deep plum page background */
-  --surface:#251D33;       /* cards and sheets */
-  --raised:#2F2640;        /* hover / pressed surfaces */
+  --bg:#0F0F0F;            /* near-black page background */
+  --surface:#181818;       /* cards and sheets */
+  --raised:#222222;        /* hover / pressed surfaces */
   --line:rgba(247,241,232,.11);
   --text:#F7F1E8;
-  --muted:#A99FBA;
+  --muted:#A0A09A;         /* neutral grey for secondary text */
+
+  /* Accent: lime green, used ONLY for actions so it stands out */
   --accent:#C8F135;
   --accent-hover:#D9FF4D;
-  --accent-ink:#141A00;                 /* dark text on top of the green buttons */
+  --accent-ink:#141A00;                 /* dark text on top of green buttons */
   --accent-dim:rgba(200,241,53,.13);
   --accent-line:rgba(200,241,53,.35);
-  /* order status colours */
+
+  /* Order status colours (success is teal so it never looks like the lime accent) */
   --red:#FF8A8A;--red-dim:rgba(255,138,138,.14);
   --blue:#7DBBFF;--blue-dim:rgba(125,187,255,.14);
-  --green:#5EE0A0;--green-dim:rgba(94,224,160,.14);
-  --nav-bg:rgba(26,20,36,.92);
-  --scrim:rgba(8,4,16,.72);
+  --green:#4FD8B4;--green-dim:rgba(79,216,180,.14);
+
+  --nav-bg:rgba(15,15,15,.92);
+  --scrim:rgba(0,0,0,.72);
   --head:'Bricolage Grotesque',system-ui,sans-serif;
   --body:'DM Sans',system-ui,sans-serif;
   /* radius scale: pills for actions, softer corners for containers */
   --r-card:22px;--r-field:14px;--r-pill:999px;
+
+  /* Compatibility aliases: old colour names used by dashboard.js / inline styles
+     now point at the new palette, so nothing renders in a wrong or missing colour */
+  --lime:var(--accent);
+  --lime-dim:var(--accent-dim);
+  --lime-border:var(--accent-line);
+  --grey:var(--muted);
+  --white:var(--text);
+  --black:var(--bg);
+  --dark:var(--surface);
+  --border:var(--line);
+  --amber:var(--blue);
+  --amber-dim:var(--blue-dim);
+  --glass:transparent;
 }
 
 html{scroll-behavior:smooth}
@@ -74,7 +92,7 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 .hero-bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600&q=80') center/cover;
   filter:brightness(.38) saturate(1.1)}
 /* Fade the photo into the page colour so the hero blends into the list below */
-.hero-bg-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(26,20,36,.55) 0%,rgba(26,20,36,0) 35%,var(--bg) 100%)}
+.hero-bg-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(15,15,15,.55) 0%,rgba(15,15,15,0) 35%,var(--bg) 100%)}
 .hero-glow,.section-divider,.hero-rule-line{display:none}
 .home-hero{position:relative;z-index:2;padding:48px 20px 56px;max-width:720px;margin:0 auto}
 .hero-rule{display:flex;align-items:center;gap:8px;margin-bottom:22px;font-size:14px;font-weight:600}
@@ -108,11 +126,11 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 .biz-card:hover .biz-arrow{color:var(--accent)}
 .biz-img-wrap{height:180px;position:relative;overflow:hidden}
 .biz-img-wrap img{width:100%;height:100%;object-fit:cover}
-.biz-img-gradient{position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(26,20,36,.7) 100%)}
-.biz-status{position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;background:rgba(26,20,36,.8);
+.biz-img-gradient{position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(15,15,15,.7) 100%)}
+.biz-status{position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;background:rgba(15,15,15,.8);
   backdrop-filter:blur(8px);border-radius:var(--r-pill);padding:5px 11px;font-size:12px;font-weight:600;color:var(--green)}
 .status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
-.biz-rating-badge{position:absolute;bottom:12px;right:12px;background:rgba(26,20,36,.8);backdrop-filter:blur(8px);
+.biz-rating-badge{position:absolute;bottom:12px;right:12px;background:rgba(15,15,15,.8);backdrop-filter:blur(8px);
   color:var(--text);border-radius:var(--r-pill);padding:4px 11px;font-size:14px;font-weight:700}
 .biz-body{padding:16px 18px 18px}
 .biz-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
@@ -129,7 +147,7 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 /* ---------- Menu screen ---------- */
 .menu-hero{padding-top:60px;height:240px;position:relative;overflow:hidden}
 .menu-hero img{width:100%;height:100%;object-fit:cover}
-.menu-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,var(--bg) 0%,rgba(26,20,36,.15) 70%,transparent 100%)}
+.menu-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,var(--bg) 0%,rgba(15,15,15,.15) 70%,transparent 100%)}
 .menu-header{padding:0 20px 20px;max-width:720px;margin:0 auto}
 .menu-biz-name{font-family:var(--head);font-weight:800;font-size:clamp(36px,9vw,56px);letter-spacing:-1.2px;line-height:1;margin-bottom:10px}
 .menu-meta-row{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-bottom:16px}
@@ -229,7 +247,7 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 .auth-input,.cm-input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:var(--r-field);padding:14px 16px;
   color:var(--text);font-family:var(--body);font-size:15px;outline:0;transition:border-color .15s}
 .auth-input:focus,.cm-input:focus{border-color:var(--accent)}
-.auth-input::placeholder,.cm-input::placeholder{color:#6F6682}
+.auth-input::placeholder,.cm-input::placeholder{color:#6B6B6B}
 .cm-input:read-only{color:var(--muted)}
 .auth-error-msg,.cm-error{font-size:13px;color:var(--red);margin-bottom:14px;min-height:18px}
 .auth-submit-btn,.cm-confirm-btn{width:100%;padding:16px;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px}
@@ -237,7 +255,7 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 .auth-forgot:hover{color:var(--accent)}
 .otp-sent-msg{display:none;background:var(--green-dim);border-radius:var(--r-field);padding:12px 14px;font-size:14px;color:var(--green);margin-bottom:16px}
 .otp-sent-msg.show{display:block}
-.spinner{width:18px;height:18px;border:2px solid rgba(35,26,0,.3);border-top-color:var(--accent-ink);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+.spinner{width:18px;height:18px;border:2px solid rgba(20,26,0,.3);border-top-color:var(--accent-ink);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
 
 /* ---------- Centered modals: confirm order, switch restaurant ---------- */
 .customer-modal,.conflict-modal{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);
@@ -289,6 +307,8 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 .track-status-badge.ready,.aoc-status-badge.ready,.hoc-status.ready,.hoc-status.completed{background:var(--green-dim);color:var(--green)}
 .track-status-badge.ready,.aoc-status-badge.ready{animation:pulse 1s infinite}
 .track-status-badge.completed,.aoc-status-badge.completed{background:var(--raised);color:var(--muted)}
+/* Unpaid orders get the same red badge as pending */
+.hoc-status.payment_initiated,.aoc-status-badge.payment_initiated{background:var(--red-dim);color:var(--red)}
 
 /* Floating "track my order" button: sits above the bottom nav */
 .track-float{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;
@@ -326,6 +346,10 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 .history-loading,.loading-state{text-align:center;padding:40px;color:var(--muted);font-size:14px}
 .error{color:var(--red);padding:20px;text-align:center;font-size:14px}
 
+/* ---------- Closed restaurants (app.js adds .closed to the status dot) ---------- */
+.status-dot.closed{background:var(--red);animation:none}
+.biz-status:has(.closed){color:var(--red)}
+
 /* ---------- Bottom navigation ----------
    Active tab = a pill behind the icon (no heavy all-caps labels) */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:300;display:flex;align-items:center;justify-content:space-around;
@@ -340,9 +364,3 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 /* Respect people who turn animations off */
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
-/* Closed restaurants: red dot and text (app.js adds .closed to the dot) */
-.status-dot.closed{background:var(--red);animation:none}
-.biz-status:has(.closed){color:var(--red)}
-
-/* Unpaid orders get the same red badge as pending */
-.hoc-status.payment_initiated,.aoc-status-badge.payment_initiated{background:var(--red-dim);color:var(--red)}
