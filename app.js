@@ -1,13 +1,3 @@
-// app.js: Customer-facing TapDish app
-// Changes in this version (logic is otherwise unchanged):
-//  - sentence-case copy to match the new design
-//  - friendly status labels (STATUS_LABELS / statusLabel)
-//  - profile name/email now update even though #profile-btn no longer exists
-//  - Home tab always visible in the bottom nav
-//  - retrying a failed payment no longer creates a duplicate order
-//  - unpaid orders (payment_initiated) now show under "Processing"
-//  - old colour names replaced, debug console.logs removed
-
 // Show a simple error if something crashes while the list is still loading
 window.addEventListener("error", () => {
   const biz = document.getElementById("biz-list");
@@ -199,7 +189,7 @@ function renderBizCards(list) {
   el.innerHTML = list.map((b) => `
     <div class="biz-card ${b.isOpen ? "" : "is-closed"}" onclick="openMenu('${b.slug || b.id}')">
       <div class="biz-img-wrap">
-        <img src="${b.bannerUrl}" alt="${b.name}" loading="lazy">
+        <img src="${b.bannerUrl}" alt="${b.name}" loading="lazy" onerror="this.style.visibility='hidden'">
         <div class="biz-img-gradient"></div>
         ${favBtn(b)}
         <div class="biz-status">
@@ -1013,7 +1003,7 @@ function renderPopular() {
   const top = [...businesses].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5);
   row.innerHTML = top.map(b => `
     <div class="pop-card" onclick="openMenu('${b.slug || b.id}')">
-      <img src="${b.bannerUrl}" alt="${b.name}" loading="lazy">
+      <img src="${b.bannerUrl}" alt="${b.name}" loading="lazy" onerror="this.style.visibility='hidden'">
       <div class="pop-body">
         <div class="pop-name">${b.name}</div>
         <div class="pop-meta">⭐ ${b.rating} · ${b.estimatedWaitMin}–${b.estimatedWaitMax} min</div>
@@ -1107,3 +1097,4 @@ window.enableNotifications = async function () {
 
 updateGreeting();
 init();
+
