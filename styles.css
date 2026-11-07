@@ -2,10 +2,10 @@
 
 /* DESIGN TOKENS: one place to change colours, fonts and radii */
 :root{
-  --bg:#0F0F0F;            /* near-black page background */
-  --surface:#181818;       /* cards and sheets */
-  --raised:#222222;        /* hover / pressed surfaces */
-  --line:rgba(247,241,232,.11);
+  --bg:#000000;            /* true black, like phone dark mode: OLED pixels switch off */
+  --surface:#0F0F0F;       /* cards and sheets: just lifted off the black */
+  --raised:#1A1A1A;        /* hover / pressed surfaces */
+  --line:rgba(247,241,232,.13);   /* slightly stronger so cards still read on pure black */
   --text:#F7F1E8;
   --muted:#A0A09A;         /* neutral grey for secondary text */
 
@@ -21,7 +21,7 @@
   --blue:#7DBBFF;--blue-dim:rgba(125,187,255,.14);
   --green:#4FD8B4;--green-dim:rgba(79,216,180,.14);
 
-  --nav-bg:rgba(15,15,15,.92);
+  --nav-bg:rgba(0,0,0,.9);
   --scrim:rgba(0,0,0,.72);
   --head:'Bricolage Grotesque',system-ui,sans-serif;
   --body:'DM Sans',system-ui,sans-serif;
@@ -91,7 +91,7 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 .hero-bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600&q=80') center/cover;
   filter:brightness(.38) saturate(1.1)}
 /* Fade the photo into the page colour so the hero blends into the list below */
-.hero-bg-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(15,15,15,.55) 0%,rgba(15,15,15,0) 35%,var(--bg) 100%)}
+.hero-bg-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.55) 0%,rgba(0,0,0,0) 35%,var(--bg) 100%)}
 .hero-glow,.section-divider,.hero-rule-line{display:none}
 .home-hero{position:relative;z-index:2;padding:48px 20px 56px;max-width:720px;margin:0 auto}
 .hero-rule{display:flex;align-items:center;gap:8px;margin-bottom:22px;font-size:14px;font-weight:600}
@@ -125,11 +125,11 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 .biz-card:hover .biz-arrow{color:var(--accent)}
 .biz-img-wrap{height:180px;position:relative;overflow:hidden}
 .biz-img-wrap img{width:100%;height:100%;object-fit:cover}
-.biz-img-gradient{position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(15,15,15,.7) 100%)}
-.biz-status{position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;background:rgba(15,15,15,.8);
+.biz-img-gradient{position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.7) 100%)}
+.biz-status{position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.8);
   backdrop-filter:blur(8px);border-radius:var(--r-pill);padding:5px 11px;font-size:12px;font-weight:600;color:var(--green)}
 .status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
-.biz-rating-badge{position:absolute;bottom:12px;right:12px;background:rgba(15,15,15,.8);backdrop-filter:blur(8px);
+.biz-rating-badge{position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);
   color:var(--text);border-radius:var(--r-pill);padding:4px 11px;font-size:14px;font-weight:700}
 .biz-body{padding:16px 18px 18px}
 .biz-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
@@ -146,7 +146,7 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 /* ---------- Menu screen ---------- */
 .menu-hero{padding-top:60px;height:240px;position:relative;overflow:hidden}
 .menu-hero img{width:100%;height:100%;object-fit:cover}
-.menu-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,var(--bg) 0%,rgba(15,15,15,.15) 70%,transparent 100%)}
+.menu-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,var(--bg) 0%,rgba(0,0,0,.15) 70%,transparent 100%)}
 .menu-header{padding:0 20px 20px;max-width:720px;margin:0 auto}
 .menu-biz-name{font-family:var(--head);font-weight:800;font-size:clamp(36px,9vw,56px);letter-spacing:-1.2px;line-height:1;margin-bottom:10px}
 .menu-meta-row{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-bottom:16px}
@@ -369,14 +369,14 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
    ========================================================== */
 
 /* Greeting hero: dark sky with two lime hills (pure CSS, no image to load) */
-.greet{height:300px;background:linear-gradient(180deg,#0E1F18 0%,#173318 70%,#1F4A17 100%)}
+.greet{height:300px;background:linear-gradient(180deg,#000000 0%,#0A170A 62%,#173318 100%)}
 .greet::before,.greet::after{content:'';position:absolute;border-radius:50% 50% 0 0/100% 100% 0 0}
 .greet::before{left:-15%;right:-15%;bottom:-70px;height:150px;background:#9BC82A}
 .greet::after{left:15%;right:-30%;bottom:-90px;height:150px;background:var(--accent)}
 .greet-text{position:relative;z-index:2;text-align:center;padding:36px 20px 0}
 .greet-hi{font-size:18px;color:rgba(247,241,232,.8)}
 .greet-name{font-family:var(--head);font-weight:800;font-size:clamp(34px,10vw,52px);letter-spacing:-1px;line-height:1.05;margin-top:2px}
-.greet-sub{display:inline-block;margin-top:12px;background:rgba(15,15,15,.55);padding:5px 12px;border-radius:var(--r-pill);font-size:13px;font-weight:600}
+.greet-sub{display:inline-block;margin-top:12px;background:rgba(0,0,0,.55);padding:5px 12px;border-radius:var(--r-pill);font-size:13px;font-weight:600}
 
 /* Search bar with an "Open now" filter toggle beside it */
 .home-search{display:flex;gap:10px;align-items:center;padding:0 20px;max-width:720px;margin:20px auto 0}
@@ -409,7 +409,7 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 
 /* Heart button on restaurant cards */
 .fav-btn{position:absolute;top:12px;right:12px;z-index:2;width:36px;height:36px;border-radius:50%;border:0;
-  background:rgba(15,15,15,.8);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  background:rgba(0,0,0,.8);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .fav-btn.on{color:var(--red)}
 .history-order-card[onclick]{cursor:pointer}
 
@@ -424,7 +424,7 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
    ========================================================== */
 .biz-img-wrap{height:200px}
 /* Stronger fade at the bottom so the white name stays readable on any photo */
-.biz-img-gradient{background:linear-gradient(180deg,rgba(15,15,15,.05) 25%,rgba(15,15,15,.88) 100%)}
+.biz-img-gradient{background:linear-gradient(180deg,rgba(0,0,0,.05) 25%,rgba(0,0,0,.88) 100%)}
 .biz-title{position:absolute;left:16px;right:16px;bottom:14px;z-index:1}
 .biz-title .biz-name{font-size:26px;margin-bottom:2px;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.5)}
 .biz-cuisine{font-size:14px;font-weight:500;color:rgba(255,255,255,.85)}
@@ -446,7 +446,7 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
 .site-footer{max-width:720px;margin:24px auto 0;padding:28px 20px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;text-align:center;line-height:1.7}
 .site-footer strong{color:var(--accent);font-family:var(--head);font-size:18px}
 /* Broken restaurant photo: keep a tidy dark placeholder behind it */
-.biz-img-wrap{background:linear-gradient(135deg,#242424,#181818)}
+.biz-img-wrap{background:linear-gradient(135deg,#1A1A1A,#0A0A0A)}
 
 @keyframes slideIn{from{transform:translateX(100%)}to{transform:none}}
 
@@ -500,4 +500,3 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
   .auth-overlay.open{align-items:center}
   .auth-sheet{border-radius:var(--r-card);border-bottom:1px solid var(--line);padding-top:28px;max-height:90vh}
 }
-
