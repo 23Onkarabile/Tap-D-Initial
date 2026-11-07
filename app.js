@@ -1,7 +1,12 @@
 // app.js: Customer-facing TapDish app
+// Changes in this version (logic is otherwise unchanged):
 //  - sentence-case copy to match the new design
 //  - friendly status labels (STATUS_LABELS / statusLabel)
-//  - unpaid orders (payment_initiated) 
+//  - profile name/email now update even though #profile-btn no longer exists
+//  - Home tab always visible in the bottom nav
+//  - retrying a failed payment no longer creates a duplicate order
+//  - unpaid orders (payment_initiated) now show under "Processing"
+//  - old colour names replaced, debug console.logs removed
 
 // Show a simple error if something crashes while the list is still loading
 window.addEventListener("error", () => {
@@ -22,7 +27,6 @@ import {
   getOrderHistory,
   callTapDishFunction
 } from "./firebase.service.js";
-import { enableOrderNotifications } from "./notifications.js";
 
 // ══ STATE ══
 let businesses = [];
@@ -1090,6 +1094,8 @@ window.enableNotifications = async function () {
   btn.disabled = true;
   btn.textContent = "Turning on…";
   try {
+    // Loaded on demand: a problem in notifications.js can no longer stop the app from starting
+    const { enableOrderNotifications } = await import("./notifications.js");
     await enableOrderNotifications(currentUser.uid);
     btn.textContent = "✅ You'll get an alert when it's ready";
   } catch (e) {
