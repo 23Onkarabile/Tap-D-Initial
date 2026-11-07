@@ -4,6 +4,6 @@
   "description": "Order ahead and collect it when it's ready.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0F0F0F",
-  "theme_color": "#0F0F0F"
+  "background_color": "#000000",
+  "theme_color": "#000000"
 }
