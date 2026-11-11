@@ -1,3 +1,5 @@
+
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 /* DESIGN TOKENS: one place to change colours, fonts and radii */
@@ -500,3 +502,77 @@ nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-i
   .auth-overlay.open{align-items:center}
   .auth-sheet{border-radius:var(--r-card);border-bottom:1px solid var(--line);padding-top:28px;max-height:90vh}
 }
+
+/* ==========================================================
+   LOCATION BAR + PROFILE PAGE
+   ========================================================== */
+.loc-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px 0;max-width:720px;margin:0 auto;font-size:13px;color:var(--muted)}
+.loc-bar .link-btn{font-size:13px;white-space:nowrap}
+@media (min-width:700px){.loc-bar{max-width:1160px;padding-left:32px;padding-right:32px}}
+
+.pf-wrap{max-width:640px;margin:0 auto;padding:84px 20px 0}
+.pf-head{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.pf-avatar{width:64px;height:64px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-family:var(--head);font-weight:800;font-size:28px;flex-shrink:0}
+.pf-id{min-width:0}
+.pf-id h1{font-family:var(--head);font-weight:800;font-size:26px;letter-spacing:-.5px;line-height:1.1}
+.pf-id p{color:var(--muted);font-size:14px;margin-top:2px;word-break:break-word}
+.pf-title{font-size:13px;font-weight:600;color:var(--muted);margin:24px 0 10px}
+.pf-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);overflow:hidden}
+.pf-row{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;padding:16px 18px;background:none;border:0;
+  border-bottom:1px solid var(--line);color:var(--text);font-family:var(--body);font-size:15px;font-weight:600;text-align:left;cursor:pointer}
+.pf-row:last-child{border-bottom:0}
+button.pf-row:hover,label.pf-row:hover{background:var(--raised)}
+.pf-row-main{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pf-row small{font-size:13px;font-weight:400;color:var(--muted)}
+.pf-chev{color:var(--muted);font-size:22px;flex-shrink:0}
+.pf-select{background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:var(--r-pill);padding:9px 12px;font-family:var(--body);font-size:14px;flex-shrink:0}
+.pf-mini{background:var(--accent);color:var(--accent-ink);border:0;border-radius:var(--r-pill);padding:9px 16px;font-family:var(--body);font-weight:700;font-size:14px;cursor:pointer;flex-shrink:0}
+/* Switch */
+.pf-toggle{appearance:none;-webkit-appearance:none;width:48px;height:28px;border-radius:99px;background:var(--raised);position:relative;cursor:pointer;flex-shrink:0;border:1px solid var(--line);transition:background .2s}
+.pf-toggle::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:all .2s}
+.pf-toggle:checked{background:var(--accent);border-color:var(--accent)}
+.pf-toggle:checked::after{left:23px;background:var(--accent-ink)}
+.pf-logout{width:100%;margin-top:28px;padding:15px;border-radius:var(--r-pill);background:var(--red-dim);color:var(--red);border:1px solid rgba(255,138,138,.3);font-family:var(--body);font-size:15px;font-weight:700;cursor:pointer}
+.pf-guest{display:none;padding:20px;margin-bottom:8px}
+.pf-guest p{color:var(--muted);margin-bottom:14px;font-size:15px}
+#profile.is-guest .pf-guest{display:block}
+#profile.is-guest .pf-auth-only{display:none}
+
+/* ==========================================================
+   PROFILE ICONS, HELP/FAQ SHEETS, LEGAL PAGES
+   ========================================================== */
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.pf-ico{width:38px;height:38px;border-radius:12px;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pf-row-main{flex:1}
+a.pf-row{text-decoration:none}
+.pf-row small:empty{display:none}
+.pf-logout{display:flex;align-items:center;justify-content:center;gap:8px}
+.pf-logout .ic{width:18px;height:18px}
+.orders-sheet .pf-row{border-radius:var(--r-card);border:1px solid var(--line);background:var(--surface)}
+.orders-sheet .pf-card .pf-row{border-radius:0;border:0;border-bottom:1px solid var(--line);background:none}
+.orders-sheet .pf-card .pf-row:last-child{border-bottom:0}
+
+/* FAQs (open/close without any JavaScript) */
+details.faq{border-bottom:1px solid var(--line);padding:16px 0}
+details.faq summary{cursor:pointer;font-weight:600;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+details.faq summary::-webkit-details-marker{display:none}
+details.faq summary::after{content:'+';color:var(--accent);font-size:22px;line-height:1}
+details.faq[open] summary::after{content:'−'}
+details.faq p{color:var(--muted);font-size:14px;margin-top:10px;line-height:1.65}
+
+/* Consent line under the sign-up form */
+.auth-legal{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+.auth-legal a{color:var(--accent)}
+
+/* Terms / privacy / refund pages */
+.doc{max-width:760px;margin:0 auto;padding:28px 20px 90px;line-height:1.7}
+.doc .back{display:inline-block;color:var(--accent);text-decoration:none;font-weight:600;font-size:14px;margin-bottom:12px}
+.doc h1{font-family:var(--head);font-weight:800;font-size:34px;letter-spacing:-.8px;margin:6px 0 6px}
+.doc h2{font-family:var(--head);font-weight:700;font-size:20px;margin:30px 0 8px}
+.doc p,.doc li{color:rgba(247,241,232,.82);font-size:15px}
+.doc ul{padding-left:22px;margin:8px 0}
+.doc a{color:var(--accent)}
+.doc .meta{color:var(--muted);font-size:13px}
+.doc .note{background:var(--surface);border:1px solid var(--accent-line);border-radius:14px;padding:14px 16px;margin:18px 0;font-size:14px;color:var(--text)}
+.doc .todo{background:var(--accent-dim);color:var(--accent);padding:1px 6px;border-radius:6px;font-weight:600}
+
