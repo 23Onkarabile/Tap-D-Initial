@@ -1,3 +1,5 @@
+
+
 // Show a simple error if something crashes while the list is still loading
 window.addEventListener("error", () => {
   const biz = document.getElementById("biz-list");
@@ -124,6 +126,7 @@ function updateProfileUI() {
       : "Not signed in";
   }
   updateGreeting();
+  updateProfilePage();
 }
 
 // ══ CART PERSISTENCE ══
@@ -198,7 +201,7 @@ function renderBizCards(list) {
         </div>
         <div class="biz-title">
           <div class="biz-name">${b.name}</div>
-          <div class="biz-cuisine">${(b.tags || []).join(" · ")}</div>
+          <div class="biz-cuisine">${(b.tags || []).join(" · ")}${distLabel(b)}</div>
         </div>
       </div>
       <div class="biz-stats">
@@ -211,7 +214,7 @@ function renderBizCards(list) {
 
 function filterBiz() {
   const q = document.getElementById("search-input").value.toLowerCase().trim();
-  let list = businesses;
+  let list = nearbyBusinesses();
   if (openOnly) list = list.filter(b => b.isOpen);
   if (q) {
     list = list.filter(b =>
@@ -219,6 +222,7 @@ function filterBiz() {
     );
   }
   renderBizCards(list);
+  updateLocBar();
 }
 
 // ══ MENU ══
@@ -552,6 +556,7 @@ function triggerReadyAlert() {
   const sheet = document.getElementById("track-overlay");
   if (sheet) { sheet.classList.add("ready-flash"); setTimeout(() => sheet.classList.remove("ready-flash"), 2000); }
   try {
+    if (!soundOn()) throw new Error("sound is off");
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const notes = [523, 659, 784, 1047];
     notes.forEach((freq, i) => {
@@ -811,15 +816,22 @@ window.bottomNav = function (tab) {
   } else if (tab === "profile") {
     document.getElementById("orders-overlay").classList.remove("open");
     document.getElementById("fav-overlay").classList.remove("open");
-    if (!currentUser) { openAuthSheet(); return; }
-    document.getElementById("profile-overlay").classList.add("open");
+    showScreen("profile");
+    updateProfilePage();
+    window.scrollTo(0, 0);
   }
 };
 
-function updateBottomNav() {
-  // Home tab is always visible so the bar keeps all three items
+function updateBottomNav(screenId) {
+  // Home tab is always visible so the bar keeps all four items
   const homeBtn = document.getElementById("bnav-home");
   if (homeBtn) homeBtn.style.display = "";
+  // Keep the highlighted tab in step with the screen (e.g. after pressing Back)
+  if (screenId === "home" || screenId === "profile") {
+    document.querySelectorAll(".bottom-nav-btn").forEach(b => b.classList.remove("active"));
+    const tab = document.getElementById("bnav-" + screenId);
+    if (tab) tab.classList.add("active");
+  }
 }
 
 function updateOrdersBadge() {
@@ -945,18 +957,73 @@ function renderOrdersTab(tab) {
   }
 }
 
-// ══ PROFILE ACTIONS (placeholders) ══
-window.openEditProfile = function () {
-  document.getElementById("profile-overlay").classList.remove("open");
-  alert("Edit profile is coming soon.");
+// ══ PROFILE ACTIONS ══
+// Edit profile: a small dialog to change name and phone
+let editSection = "account";
+// section = "account" (name) or "contact" (phone + email)
+window.openEditProfile = function (section) {
+  if (!currentUser) { openAuthSheet(); return; }
+  editSection = section === "contact" ? "contact" : "account";
+  const isAccount = editSection === "account";
+  document.getElementById("ep-title").textContent = isAccount ? "Account details" : "Contact details";
+  document.getElementById("ep-sub").textContent = isAccount
+    ? "The name shown on your orders."
+    : "We use your phone number to match your order at pickup and for order alerts.";
+  document.getElementById("ep-f-name").style.display = isAccount ? "" : "none";
+  document.getElementById("ep-f-phone").style.display = isAccount ? "none" : "";
+  document.getElementById("ep-f-email").style.display = isAccount ? "none" : "";
+  document.getElementById("ep-name").value = (currentProfile && currentProfile.name) || "";
+  document.getElementById("ep-phone").value = (currentProfile && currentProfile.phone) || "";
+  document.getElementById("ep-email").value = (currentProfile && currentProfile.email) || currentUser.email || "";
+  document.getElementById("ep-error").textContent = "";
+  const btn = document.getElementById("ep-save-btn");
+  btn.disabled = false; btn.textContent = "Save changes";
+  document.getElementById("edit-profile-modal").classList.add("open");
 };
-window.openMyAddress = function () {
-  document.getElementById("profile-overlay").classList.remove("open");
-  alert("My address is coming soon.");
+window.closeEditProfile = function () {
+  document.getElementById("edit-profile-modal").classList.remove("open");
 };
-window.openPayment = function () {
+window.saveEditProfile = async function () {
+  const errEl = document.getElementById("ep-error");
+  const btn = document.getElementById("ep-save-btn");
+  const fields = {};
+  if (editSection === "account") {
+    const name = document.getElementById("ep-name").value.trim();
+    if (!name) { errEl.textContent = "Please enter your name."; return; }
+    fields.name = name;
+  } else {
+    const phone = document.getElementById("ep-phone").value.trim();
+    if (!/^[0-9+\s]{7,15}$/.test(phone)) { errEl.textContent = "Please enter a valid phone number."; return; }
+    fields.phone = phone;
+  }
+  errEl.textContent = "";
+  btn.disabled = true; btn.textContent = "Saving…";
+  try {
+    // Loaded on demand so a problem in profile.js can never stop the app from starting
+    const { saveProfile } = await import("./profile.js");
+    await saveProfile(currentUser.uid, fields);
+    currentProfile = { ...currentProfile, ...fields };  // update the screen without reloading
+    updateProfileUI();
+    closeEditProfile();
+  } catch (e) {
+    errEl.textContent = "Couldn't save: " + e.message;
+    btn.disabled = false; btn.textContent = "Save changes";
+  }
+};
+
+// Order alerts: turn on "your order is ready" notifications from the profile
+window.turnOnNotificationsFromProfile = async function () {
   document.getElementById("profile-overlay").classList.remove("open");
-  alert("Payment settings are coming soon.");
+  if (IS_IOS && !IS_INSTALLED) {
+    alert("On iPhone: tap the Share button, choose Add to Home Screen, then open TapDish from your home screen and try again.");
+    return;
+  }
+  try {
+    const { enableOrderNotifications } = await import("./notifications.js");
+    await enableOrderNotifications(currentUser.uid);
+    alert("Order alerts are on. We'll notify you when your order is ready.");
+  } catch (e) { alert(e.message); }
+  updateProfilePage();
 };
 
 // ══ HOME: greeting, categories, open-only filter, popular row ══
@@ -1000,13 +1067,13 @@ window.scrollToList = function () {
 function renderPopular() {
   const row = document.getElementById("pop-row");
   if (!row) return;
-  const top = [...businesses].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5);
+  const top = [...nearbyBusinesses()].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5);
   row.innerHTML = top.map(b => `
     <div class="pop-card" onclick="openMenu('${b.slug || b.id}')">
       <img src="${b.bannerUrl}" alt="${b.name}" loading="lazy" onerror="this.style.visibility='hidden'">
       <div class="pop-body">
         <div class="pop-name">${b.name}</div>
-        <div class="pop-meta">⭐ ${b.rating} · ${b.estimatedWaitMin}–${b.estimatedWaitMax} min</div>
+        <div class="pop-meta">⭐ ${b.rating} · ${b.estimatedWaitMin}–${b.estimatedWaitMax} min${distLabel(b)}</div>
       </div>
     </div>`).join("");
 }
@@ -1095,6 +1162,220 @@ window.enableNotifications = async function () {
   }
 };
 
+// ══ LOCATION: show restaurants near the customer ══
+// Restaurants need numeric "lat" and "lng" fields in Firestore. Restaurants without them are
+// still shown (at the end of the list) so a new restaurant is never hidden by mistake.
+let userLoc = null;   // { lat, lng }, kept on this phone only
+let radiusKm = 15;    // 0 = anywhere
+try {
+  const saved = JSON.parse(localStorage.getItem("tapdish_loc"));
+  if (saved && Number.isFinite(saved.lat) && Number.isFinite(saved.lng)) userLoc = { lat: saved.lat, lng: saved.lng };
+  const r = localStorage.getItem("tapdish_radius");
+  if (r !== null) radiusKm = Number(r);
+} catch (e) { /* storage blocked: use defaults */ }
+
+function coordsOf(b) {
+  const lat = Number(b.lat !== undefined ? b.lat : b.geo && b.geo.latitude);
+  const lng = Number(b.lng !== undefined ? b.lng : b.geo && b.geo.longitude);
+  return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+}
+
+// Straight-line distance between two points on Earth, in km (haversine formula)
+function haversineKm(a, b) {
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng);
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+}
+
+// Restaurants sorted nearest-first, limited to the chosen radius
+function nearbyBusinesses() {
+  if (!userLoc) return businesses;
+  businesses.forEach(b => { const c = coordsOf(b); b._km = c ? haversineKm(userLoc, c) : NaN; });
+  const sorted = [...businesses].sort((x, y) => (isNaN(x._km) ? 1e9 : x._km) - (isNaN(y._km) ? 1e9 : y._km));
+  return radiusKm ? sorted.filter(b => isNaN(b._km) || b._km <= radiusKm) : sorted;
+}
+
+function distLabel(b) {
+  return userLoc && Number.isFinite(b._km) ? ` · ${b._km < 10 ? b._km.toFixed(1) : Math.round(b._km)} km` : "";
+}
+
+function updateLocBar() {
+  const text = document.getElementById("loc-text");
+  const btn = document.getElementById("loc-btn");
+  if (!text || !btn) return;
+  if (!userLoc) {
+    text.textContent = "📍 Showing all restaurants";
+    btn.textContent = "Use my location";
+    btn.setAttribute("onclick", "useMyLocation()");
+    return;
+  }
+  const shown = nearbyBusinesses().length;
+  const hidden = businesses.length - shown;
+  text.textContent = radiusKm ? `📍 Within ${radiusKm} km · ${shown} restaurant${shown !== 1 ? "s" : ""}` : "📍 Nearest first";
+  if (hidden > 0) { btn.textContent = `Show all (+${hidden})`; btn.setAttribute("onclick", "setRadius(0)"); }
+  else { btn.textContent = "Update"; btn.setAttribute("onclick", "useMyLocation()"); }
+}
+
+function refreshNearby() {
+  filterBiz();
+  renderPopular();
+  updateProfilePage();
+}
+
+// Ask the phone where it is. silent = true when permission was already given.
+function locate(silent) {
+  if (!navigator.geolocation) { if (!silent) alert("This browser can't share your location."); return; }
+  const btn = document.getElementById("loc-btn");
+  if (!silent && btn) btn.textContent = "Finding you…";
+  navigator.geolocation.getCurrentPosition(pos => {
+    userLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    try { localStorage.setItem("tapdish_loc", JSON.stringify(userLoc)); } catch (e) { /* ignore */ }
+    refreshNearby();
+  }, err => {
+    updateLocBar();
+    if (!silent) alert(err.code === 1
+      ? "Location is blocked. Allow it in your browser settings, then try again."
+      : "Couldn't find your location. Please try again.");
+  }, { timeout: 10000, maximumAge: 300000 });
+}
+window.useMyLocation = function () { locate(false); };
+window.setRadius = function (km) {
+  radiusKm = Number(km);
+  try { localStorage.setItem("tapdish_radius", String(radiusKm)); } catch (e) { /* ignore */ }
+  refreshNearby();
+};
+window.clearLocation = function () {
+  userLoc = null;
+  try { localStorage.removeItem("tapdish_loc"); } catch (e) { /* ignore */ }
+  refreshNearby();
+};
+// If the customer already allowed location before, refresh it quietly on load
+if (navigator.permissions && navigator.geolocation) {
+  navigator.permissions.query({ name: "geolocation" })
+    .then(p => { if (p.state === "granted") locate(true); })
+    .catch(() => {});
+}
+
+// ══ PROFILE PAGE ══
+window.openAuthSheet = openAuthSheet;
+function soundOn() {
+  try { return localStorage.getItem("tapdish_sound") !== "off"; } catch (e) { return true; }
+}
+window.setSound = function (on) {
+  try { localStorage.setItem("tapdish_sound", on ? "on" : "off"); } catch (e) { /* ignore */ }
+};
+
+// Fills the profile page with the current account, notification and location state
+function updateProfilePage() {
+  const page = document.getElementById("profile");
+  if (!page) return;
+  const signedIn = !!(currentUser && currentProfile);
+  page.classList.toggle("is-guest", !signedIn);
+  document.getElementById("pf-name").textContent = signedIn ? (currentProfile.name || "Customer") : "Guest";
+  document.getElementById("pf-contact").textContent = signedIn
+    ? [currentProfile.phone, currentProfile.email || currentUser.email].filter(Boolean).join(" · ")
+    : "Not signed in";
+  const accSub = document.getElementById("pf-acc-sub");
+  const conSub = document.getElementById("pf-con-sub");
+  if (accSub) accSub.textContent = signedIn ? (currentProfile.name || "Add your name") : "";
+  if (conSub) conSub.textContent = signedIn
+    ? ([currentProfile.phone, currentProfile.email || currentUser.email].filter(Boolean).join(" · ") || "Add a phone number") : "";
+  const initial = signedIn && currentProfile.name ? currentProfile.name.trim().charAt(0).toUpperCase() : "";
+  document.getElementById("pf-avatar").textContent = initial || "👤";
+
+  // Order alerts status
+  const ns = document.getElementById("pf-notif-status");
+  const nb = document.getElementById("pf-notif-btn");
+  if (!("Notification" in window)) {
+    ns.textContent = IS_IOS ? "Add TapDish to your home screen first" : "Not supported on this browser";
+    nb.textContent = "How?";
+  } else if (Notification.permission === "granted") {
+    ns.textContent = "On for this phone"; nb.textContent = "Refresh";
+  } else if (Notification.permission === "denied") {
+    ns.textContent = "Blocked. Allow notifications in your browser settings"; nb.textContent = "Try again";
+  } else {
+    ns.textContent = "Off"; nb.textContent = "Turn on";
+  }
+
+  document.getElementById("pf-sound").checked = soundOn();
+  document.getElementById("pf-radius").value = String(radiusKm);
+  document.getElementById("pf-loc-status").textContent = userLoc
+    ? (radiusKm ? `Showing restaurants within ${radiusKm} km of you` : "Showing nearest first")
+    : "Location is off. Showing all restaurants";
+}
+
+// ══ SHEETS: payments, refunds, help, FAQs, terms, about ══
+// Fill these two in with your real support details (leave "" to hide that button)
+const SUPPORT_EMAIL = "";      // e.g. "support@tapdish.co.za"
+const SUPPORT_WHATSAPP = "";   // digits only, with country code, e.g. "27731234567"
+// Money format used in the history lists. Change "$" to "R" to show rands.
+const MONEY = n => "$" + Number(n || 0).toFixed(2);
+
+window.openSheet = function (id) { document.getElementById(id).classList.add("open"); };
+window.closeSheet = function (id) { document.getElementById(id).classList.remove("open"); };
+window.closeSheetOutside = function (e, id) { if (e.target === e.currentTarget) closeSheet(id); };
+
+// Opens WhatsApp or the email app with the subject pre-filled
+window.contactSupport = function (subject, kind) {
+  kind = kind || (SUPPORT_WHATSAPP ? "wa" : SUPPORT_EMAIL ? "mail" : "");
+  if (!kind) { alert("Support contact details are coming soon."); return; }
+  const msg = encodeURIComponent("TapDish: " + subject);
+  const url = kind === "wa"
+    ? `https://wa.me/${SUPPORT_WHATSAPP}?text=${msg}`
+    : `mailto:${SUPPORT_EMAIL}?subject=${msg}`;
+  window.open(url, "_blank");
+};
+window.openHelp = function () {
+  document.getElementById("help-wa").style.display = SUPPORT_WHATSAPP ? "" : "none";
+  document.getElementById("help-mail").style.display = SUPPORT_EMAIL ? "" : "none";
+  document.getElementById("help-card").style.display = SUPPORT_WHATSAPP || SUPPORT_EMAIL ? "" : "none";
+  document.getElementById("help-none").style.display = SUPPORT_WHATSAPP || SUPPORT_EMAIL ? "none" : "";
+  openSheet("sheet-help");
+};
+
+// How an order's payment looks to the customer
+function payState(o) {
+  if (o.status === "refunded") return { t: "Refunded", c: "completed" };
+  if (o.status === "rejected") return { t: "Refund due", c: "preparing" };
+  if (["payment_initiated", "pending_payment"].includes(o.status)) return { t: "Unpaid", c: "payment_initiated" };
+  return { t: "Paid", c: "ready" };
+}
+function txnCard(o) {
+  const st = payState(o);
+  const date = o.createdAt ? formatDate(o.createdAt.toDate()) : "—";
+  const items = (o.items || []).map(it => `${it.qty}× ${it.name}`).join(", ");
+  return `<div class="history-order-card">
+      <div class="hoc-head"><span class="hoc-num">${o.orderNumber || o.id.slice(0, 8).toUpperCase()}</span><span class="hoc-date">${date}</span></div>
+      <div class="hoc-biz">${o.businessName || "—"}</div>
+      <div class="hoc-items">${items}</div>
+      <div class="hoc-foot"><span class="hoc-total">${MONEY(o.totalPayable ?? o.total)}</span><span class="hoc-status ${st.c}">${st.t}</span></div>
+    </div>`;
+}
+async function loadOrdersInto(listId, filterFn, emptyIcon, emptyText) {
+  const el = document.getElementById(listId);
+  el.innerHTML = '<div class="history-loading">Loading…</div>';
+  try {
+    const list = (await getOrderHistory(currentUser.uid)).filter(filterFn);
+    el.innerHTML = list.length
+      ? list.map(txnCard).join("")
+      : `<div class="history-empty"><span class="history-empty-icon">${emptyIcon}</span><p>${emptyText}</p></div>`;
+  } catch (e) {
+    el.innerHTML = `<div class="history-empty"><p>Couldn't load this.<br>${e.message}</p></div>`;
+  }
+}
+window.openPayments = function () {
+  if (!currentUser) { openAuthSheet(); return; }
+  openSheet("sheet-payments");
+  loadOrdersInto("pay-list", () => true, "🧾", "No transactions yet.");
+};
+window.openRefunds = function () {
+  if (!currentUser) { openAuthSheet(); return; }
+  openSheet("sheet-refunds");
+  loadOrdersInto("refund-list", o => ["rejected", "refunded"].includes(o.status), "↩️", "No refunds. Rejected or refunded orders will appear here.");
+};
+
 updateGreeting();
 init();
+
 
