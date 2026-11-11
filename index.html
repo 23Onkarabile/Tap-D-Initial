@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TapDish | Order ahead, pick up</title>
+<title>TapDish | Order ahead, pick up on campus</title>
 
 <!-- Fonts: Bricolage Grotesque for headings, DM Sans for body text.
      The old Bebas Neue / Syne / Instrument Serif link is removed because nothing uses it any more. -->
@@ -17,6 +17,25 @@
 <meta name="theme-color" content="#000000">
 </head>
 <body>
+<!-- Icon sprite: each icon is defined once and reused with <svg class="ic"><use href="#i-name"/></svg> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></symbol>
+<symbol id="i-refund" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 102.1-9.4L1 10"/></symbol>
+<symbol id="i-card" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></symbol>
+<symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></symbol>
+<symbol id="i-sound" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 010 7"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+<symbol id="i-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+<symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22 6 12 13 2 6"/></symbol>
+</defs></svg>
+
 
 <!-- ============ HOME ============ -->
 <div id="home" class="screen active">
@@ -46,6 +65,12 @@
       <input type="text" id="search-input" placeholder="Search restaurants or dishes" oninput="filterBiz()" aria-label="Search restaurants or dishes">
     </div>
     <button type="button" class="filter-btn" id="filter-open" onclick="toggleOpenOnly()" aria-pressed="false">Open now</button>
+  </div>
+
+  <!-- Location bar: "near you" status, filled in by app.js -->
+  <div class="loc-bar" id="loc-bar">
+    <span id="loc-text">📍 Showing all restaurants</span>
+    <button type="button" class="link-btn" id="loc-btn" onclick="useMyLocation()">Use my location</button>
   </div>
 
   <!-- Categories: each tile filters the restaurant list by that keyword -->
@@ -109,6 +134,64 @@
   </div>
   <div class="cat-nav-wrap"><div class="cat-nav" id="cat-nav"></div></div>
   <div class="menu-items" id="menu-items"></div>
+</div>
+
+<!-- ============ PROFILE PAGE ============ -->
+<div id="profile" class="screen is-guest">
+  <nav class="top-nav">
+    <div class="nav-logo">TapDish</div>
+    <div class="nav-right"><button type="button" class="back-btn" onclick="goHome()">← Back</button></div>
+  </nav>
+  <div class="pf-wrap">
+    <div class="pf-head">
+      <div class="pf-avatar" id="pf-avatar">👤</div>
+      <div class="pf-id"><h1 id="pf-name">Guest</h1><p id="pf-contact">Not signed in</p></div>
+    </div>
+
+    <!-- Shown only when signed out -->
+    <div class="pf-card pf-guest">
+      <p>Sign in to see your orders, save favourites and get alerts when your food is ready.</p>
+      <button type="button" class="order-btn" onclick="openAuthSheet()">Sign in or create account</button>
+    </div>
+
+    <!-- Group 1: your account -->
+    <div class="pf-card pf-auth-only" style="margin-top:8px">
+      <button type="button" class="pf-row" onclick="openEditProfile('account')"><span class="pf-ico"><svg class="ic"><use href="#i-user"/></svg></span><span class="pf-row-main">Account details<small id="pf-acc-sub"></small></span><span class="pf-chev">›</span></button>
+      <button type="button" class="pf-row" onclick="openEditProfile('contact')"><span class="pf-ico"><svg class="ic"><use href="#i-phone"/></svg></span><span class="pf-row-main">Contact details<small id="pf-con-sub"></small></span><span class="pf-chev">›</span></button>
+      <button type="button" class="pf-row" onclick="openRefunds()"><span class="pf-ico"><svg class="ic"><use href="#i-refund"/></svg></span><span class="pf-row-main">Refunds<small>Rejected or refunded orders</small></span><span class="pf-chev">›</span></button>
+      <button type="button" class="pf-row" onclick="openPayments()"><span class="pf-ico"><svg class="ic"><use href="#i-card"/></svg></span><span class="pf-row-main">Payments &amp; history<small>Payment method and past transactions</small></span><span class="pf-chev">›</span></button>
+    </div>
+
+    <h3 class="pf-title">Settings</h3>
+    <div class="pf-card">
+      <div class="pf-row pf-auth-only">
+        <span class="pf-ico"><svg class="ic"><use href="#i-bell"/></svg></span>
+        <span class="pf-row-main">Order alerts<small id="pf-notif-status">Off</small></span>
+        <button type="button" class="pf-mini" id="pf-notif-btn" onclick="turnOnNotificationsFromProfile()">Turn on</button>
+      </div>
+      <label class="pf-row"><span class="pf-ico"><svg class="ic"><use href="#i-sound"/></svg></span><span class="pf-row-main">Ready sound<small>Play a chime when your order is ready</small></span><input type="checkbox" class="pf-toggle" id="pf-sound" onchange="setSound(this.checked)"></label>
+      <div class="pf-row">
+        <span class="pf-ico"><svg class="ic"><use href="#i-pin"/></svg></span>
+        <span class="pf-row-main">Show restaurants within<small id="pf-loc-status">Location is off</small></span>
+        <select class="pf-select" id="pf-radius" onchange="setRadius(this.value)">
+          <option value="5">5 km</option><option value="10">10 km</option><option value="15">15 km</option><option value="25">25 km</option><option value="0">Anywhere</option>
+        </select>
+      </div>
+      <button type="button" class="pf-row" onclick="useMyLocation()"><span class="pf-ico"><svg class="ic"><use href="#i-locate"/></svg></span><span class="pf-row-main">Update my location<small>Only used on your phone to sort restaurants by distance</small></span><span class="pf-chev">›</span></button>
+      <button type="button" class="pf-row" onclick="clearLocation()"><span class="pf-ico"><svg class="ic"><use href="#i-pin"/></svg></span><span class="pf-row-main">Stop using my location<small>Show all restaurants</small></span><span class="pf-chev">›</span></button>
+    </div>
+
+    <!-- Group 2: help and information -->
+    <h3 class="pf-title">Help and information</h3>
+    <div class="pf-card">
+      <button type="button" class="pf-row" onclick="openHelp()"><span class="pf-ico"><svg class="ic"><use href="#i-help"/></svg></span><span class="pf-row-main">Help<small>Get in touch with us</small></span><span class="pf-chev">›</span></button>
+      <button type="button" class="pf-row" onclick="openSheet('sheet-faqs')"><span class="pf-ico"><svg class="ic"><use href="#i-chat"/></svg></span><span class="pf-row-main">FAQs<small>Answers to common questions</small></span><span class="pf-chev">›</span></button>
+      <button type="button" class="pf-row" onclick="openSheet('sheet-terms')"><span class="pf-ico"><svg class="ic"><use href="#i-file"/></svg></span><span class="pf-row-main">Terms and policies<small>Terms of use, privacy and refunds</small></span><span class="pf-chev">›</span></button>
+      <button type="button" class="pf-row" onclick="openSheet('sheet-about')"><span class="pf-ico"><svg class="ic"><use href="#i-info"/></svg></span><span class="pf-row-main">About<small>About TapDish</small></span><span class="pf-chev">›</span></button>
+    </div>
+
+    <button type="button" class="pf-logout pf-auth-only" onclick="handleSignOut()"><svg class="ic"><use href="#i-logout"/></svg> Log out</button>
+  </div>
 </div>
 
 <!-- ============ READY BANNER + TRACK ORDER SHEET ============ -->
@@ -228,6 +311,7 @@
           <label for="es-password">Password</label>
           <input type="password" class="auth-input" id="es-password" placeholder="At least 6 characters" autocomplete="new-password">
         </div>
+        <p class="auth-legal">By creating an account you agree to our <a href="/terms.html" target="_blank" rel="noopener">Terms of use</a> and <a href="/privacy.html" target="_blank" rel="noopener">Privacy policy</a>.</p>
         <div class="auth-error-msg" id="es-error"></div>
         <button type="button" class="auth-submit-btn" id="es-btn" onclick="handleEmailSignup()"><span>Create account</span></button>
       </div>
@@ -306,13 +390,13 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         Edit profile
       </button>
-      <button type="button" class="profile-action-btn" onclick="openMyAddress()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        My address
+      <button type="button" class="profile-action-btn" onclick="openOrderHistory()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Order history
       </button>
-      <button type="button" class="profile-action-btn" onclick="openPayment()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-        Payment
+      <button type="button" class="profile-action-btn" onclick="turnOnNotificationsFromProfile()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+        Order alerts
       </button>
       <button type="button" class="profile-action-btn sign-out-btn" onclick="handleSignOut()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -329,6 +413,31 @@
     <div class="history-sheet-title">Order history</div>
     <div class="history-sheet-sub" id="history-sheet-sub">Your past orders</div>
     <div id="history-list"></div>
+  </div>
+</div>
+
+<!-- ============ EDIT PROFILE MODAL (account details / contact details) ============ -->
+<div class="modal-overlay" id="edit-profile-modal">
+  <div class="customer-modal">
+    <div class="cm-title" id="ep-title">Account details</div>
+    <div class="cm-sub" id="ep-sub"></div>
+    <div class="cm-field" id="ep-f-name">
+      <label class="cm-label" for="ep-name">Your name</label>
+      <input type="text" class="cm-input" id="ep-name" placeholder="Your name" autocomplete="name">
+    </div>
+    <div class="cm-field" id="ep-f-phone">
+      <label class="cm-label" for="ep-phone">Phone number</label>
+      <input type="tel" class="cm-input" id="ep-phone" placeholder="e.g. 073 123 4567" autocomplete="tel">
+    </div>
+    <div class="cm-field" id="ep-f-email">
+      <label class="cm-label" for="ep-email">Email</label>
+      <input type="email" class="cm-input" id="ep-email" readonly>
+    </div>
+    <div class="cm-error" id="ep-error"></div>
+    <div class="cm-actions">
+      <button type="button" class="cm-confirm-btn" id="ep-save-btn" onclick="saveEditProfile()">Save changes</button>
+      <button type="button" class="cm-cancel-btn" onclick="closeEditProfile()">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -421,9 +530,99 @@
   </div>
 </div>
 
+<div class="orders-overlay" id="sheet-payments" onclick="closeSheetOutside(event,'sheet-payments')">
+  <div class="orders-sheet">
+    <div class="orders-sheet-head">
+      <div class="orders-sheet-title">Payments &amp;<br>history</div>
+      <button type="button" class="sheet-x-btn" aria-label="Close" onclick="closeSheet('sheet-payments')">✕</button>
+    </div>
+    <div class="pf-card"><div class="pf-row"><span class="pf-ico"><svg class="ic"><use href="#i-card"/></svg></span><span class="pf-row-main">Payment method<small>You pay securely online when you place an order. TapDish never stores your card or bank details.</small></span></div></div>
+    <div class="orders-section-label" style="margin-top:22px">Transaction history</div>
+    <div id="pay-list"></div>
+  </div>
+</div>
+
+<div class="orders-overlay" id="sheet-refunds" onclick="closeSheetOutside(event,'sheet-refunds')">
+  <div class="orders-sheet">
+    <div class="orders-sheet-head">
+      <div class="orders-sheet-title">Refunds</div>
+      <button type="button" class="sheet-x-btn" aria-label="Close" onclick="closeSheet('sheet-refunds')">✕</button>
+    </div>
+    <div class="pf-card"><div class="pf-row"><span class="pf-ico"><svg class="ic"><use href="#i-refund"/></svg></span><span class="pf-row-main">How refunds work<small>If a restaurant rejects an order you paid for, you are refunded to your original payment method. See the refund policy for the full rules.</small></span></div></div>
+    <div class="orders-section-label" style="margin-top:22px">Your refunds</div>
+    <div id="refund-list"></div>
+    <button type="button" class="order-btn" style="margin-top:12px" onclick="contactSupport('Refund query')">Ask about a refund</button>
+  </div>
+</div>
+
+<div class="orders-overlay" id="sheet-help" onclick="closeSheetOutside(event,'sheet-help')">
+  <div class="orders-sheet">
+    <div class="orders-sheet-head">
+      <div class="orders-sheet-title">Help</div>
+      <button type="button" class="sheet-x-btn" aria-label="Close" onclick="closeSheet('sheet-help')">✕</button>
+    </div>
+    <p class="orders-sheet-sub">Have your order number ready. It starts with GRB.</p>
+    <div class="pf-card" id="help-card">
+      <button type="button" class="pf-row" id="help-wa" onclick="contactSupport('Help','wa')"><span class="pf-ico"><svg class="ic"><use href="#i-chat"/></svg></span><span class="pf-row-main">Chat on WhatsApp<small>The quickest way to reach us</small></span><span class="pf-chev">›</span></button>
+      <button type="button" class="pf-row" id="help-mail" onclick="contactSupport('Help','mail')"><span class="pf-ico"><svg class="ic"><use href="#i-mail"/></svg></span><span class="pf-row-main">Email us<small>We reply within one working day</small></span><span class="pf-chev">›</span></button>
+    </div>
+    <p class="orders-sheet-sub" id="help-none" style="display:none">Support contact details are coming soon.</p>
+    <button type="button" class="pf-row" style="margin-top:12px" onclick="closeSheet('sheet-help');openSheet('sheet-faqs')"><span class="pf-ico"><svg class="ic"><use href="#i-help"/></svg></span><span class="pf-row-main">Browse the FAQs<small>Answers to common questions</small></span><span class="pf-chev">›</span></button>
+  </div>
+</div>
+
+<div class="orders-overlay" id="sheet-faqs" onclick="closeSheetOutside(event,'sheet-faqs')">
+  <div class="orders-sheet">
+    <div class="orders-sheet-head">
+      <div class="orders-sheet-title">FAQs</div>
+      <button type="button" class="sheet-x-btn" aria-label="Close" onclick="closeSheet('sheet-faqs')">✕</button>
+    </div>
+    <details class="faq"><summary>How does ordering work?</summary><p>Choose a restaurant, add what you want, pay online and place your order. The restaurant prepares it, we tell you when it is ready, and you collect it at the restaurant.</p></details>
+    <details class="faq"><summary>Do you deliver?</summary><p>No. TapDish is pickup only. You order ahead and collect your food yourself.</p></details>
+    <details class="faq"><summary>How will I know my order is ready?</summary><p>Turn on Order alerts in your profile and we will send a notification the moment the restaurant marks your order ready. You can also open the Orders tab to see its status.</p></details>
+    <details class="faq"><summary>Can I cancel my order?</summary><p>Contact us as soon as possible with your order number. If the restaurant has not started preparing it, we will do our best to help. See the refund policy for details.</p></details>
+    <details class="faq"><summary>What if the restaurant rejects my order?</summary><p>You will see the status Rejected. If you already paid, you are refunded. See the refund policy for how and when.</p></details>
+    <details class="faq"><summary>Is my payment safe?</summary><p>You pay on a secure payment page. TapDish never sees or stores your card or bank details.</p></details>
+    <details class="faq"><summary>Why can't I see restaurants near me?</summary><p>Allow location when asked, or open Profile and set Show restaurants within to Anywhere. A restaurant may also not have joined TapDish in your area yet.</p></details>
+    <details class="faq"><summary>How do I change my name or phone number?</summary><p>Open Profile, then Account details or Contact details.</p></details>
+    <details class="faq"><summary>I did not get a notification</summary><p>Check that Order alerts is on in your profile and that notifications are allowed for TapDish in your browser settings. On iPhone, add TapDish to your Home Screen first.</p></details>
+
+  </div>
+</div>
+
+<div class="orders-overlay" id="sheet-terms" onclick="closeSheetOutside(event,'sheet-terms')">
+  <div class="orders-sheet">
+    <div class="orders-sheet-head">
+      <div class="orders-sheet-title">Terms and<br>policies</div>
+      <button type="button" class="sheet-x-btn" aria-label="Close" onclick="closeSheet('sheet-terms')">✕</button>
+    </div>
+    <div class="pf-card">
+      <a class="pf-row" href="/terms.html" target="_blank" rel="noopener"><span class="pf-ico"><svg class="ic"><use href="#i-file"/></svg></span><span class="pf-row-main">Terms of use<small>The rules for using TapDish</small></span><span class="pf-chev">›</span></a>
+      <a class="pf-row" href="/privacy.html" target="_blank" rel="noopener"><span class="pf-ico"><svg class="ic"><use href="#i-shield"/></svg></span><span class="pf-row-main">Privacy policy<small>How we look after your information</small></span><span class="pf-chev">›</span></a>
+      <a class="pf-row" href="/refund-policy.html" target="_blank" rel="noopener"><span class="pf-ico"><svg class="ic"><use href="#i-refund"/></svg></span><span class="pf-row-main">Refund policy<small>When and how you get refunds</small></span><span class="pf-chev">›</span></a>
+    </div>
+  </div>
+</div>
+
+<div class="orders-overlay" id="sheet-about" onclick="closeSheetOutside(event,'sheet-about')">
+  <div class="orders-sheet">
+    <div class="orders-sheet-head">
+      <div class="orders-sheet-title">About</div>
+      <button type="button" class="sheet-x-btn" aria-label="Close" onclick="closeSheet('sheet-about')">✕</button>
+    </div>
+    <div class="pf-head" style="margin-bottom:12px"><div class="pf-avatar">T</div><div class="pf-id"><h1>TapDish</h1><p>Version 1.0</p></div></div>
+    <p class="orders-sheet-sub">Order ahead from local restaurants and collect your food when it is ready. Pickup only, no delivery, no queues.</p>
+    <div class="pf-card">
+      <a class="pf-row" href="/terms.html" target="_blank" rel="noopener"><span class="pf-ico"><svg class="ic"><use href="#i-file"/></svg></span><span class="pf-row-main">Terms of use<small></small></span><span class="pf-chev">›</span></a>
+      <a class="pf-row" href="/privacy.html" target="_blank" rel="noopener"><span class="pf-ico"><svg class="ic"><use href="#i-shield"/></svg></span><span class="pf-row-main">Privacy policy<small></small></span><span class="pf-chev">›</span></a>
+    </div>
+  </div>
+</div>
+
 <script type="module" src="app.js"></script>
 </body>
 </html>
+
 
 
  
