@@ -1,1 +1,62 @@
+/* dashboard-responsive.css - load AFTER your existing styles so these rules win.
+   Main fix: below 768px the sidebar was hidden with nothing to replace it, so vendors
+   on a phone couldn't switch tabs. A bottom tab bar now takes its place. */
+
+.bottom-nav { display: none; }
+.dash-main { min-width: 0; } /* stops wide content from forcing sideways scroll */
+
+/* Tablet */
+@media (max-width: 1100px) {
+  .dash-body { grid-template-columns: 180px 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Phone */
+@media (max-width: 768px) {
+  .dash-nav { padding: 0 14px; }
+  .dash-biz-name { display: none; }          /* the restaurant name is shown on the page instead */
+  .dash-main { padding: 16px 14px calc(88px + env(safe-area-inset-bottom)); }
+  .stat-val { font-size: 32px; }
+  .sec-head { flex-wrap: wrap; gap: 8px; }
+
+  /* Order cards: stack the footer so buttons are full width and easy to tap */
+  .order-foot { flex-direction: column; align-items: stretch; gap: 12px; }
+  .order-actions { flex-direction: column; }
+  .action-btn, .kanban-btn { min-height: 44px; width: 100%; font-size: 13px; } /* 44px = comfortable thumb target */
+  .order-item-line { gap: 8px; }
+
+  /* Bottom tab bar (replaces the hidden sidebar) */
+  .bottom-nav {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;
+    background: rgba(10,10,10,.96); backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom); /* keeps it clear of the iPhone home bar */
+  }
+  .bnav-btn {
+    position: relative; min-height: 58px; background: none; border: 0;
+    color: var(--grey); font: 700 11px 'Syne', sans-serif;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  }
+  .bnav-btn .icon { font-size: 18px; }
+  .bnav-btn.active { color: var(--lime); }
+  .bnav-badge {
+    position: absolute; top: 6px; left: calc(50% + 8px);
+    background: var(--red); color: #fff; border-radius: 10px;
+    padding: 1px 6px; font-size: 10px; font-weight: 800;
+  }
+
+  /* Toast sits above the bottom bar instead of behind it */
+  .toast { left: 14px; right: 14px; bottom: calc(76px + env(safe-area-inset-bottom)); }
+}
+
+/* Statuses the dashboard now shows that had no colour before */
+.badge-rejected, .badge-refunded { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,77,77,.3); }
+.btn-reject { background: transparent; color: var(--red); border: 1px solid rgba(255,77,77,.3); }
+.btn-reject:hover { background: var(--red); color: #fff; }
+
+/* Respect "reduce motion": turns off the CSS animations (GSAP checks this itself) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
 
